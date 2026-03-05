@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies (language-specific - uncomment as needed)
+# node_modules/
+# __pycache__/
+# .venv/
+# vendor/
+
+# Build outputs (language-specific - uncomment as needed)
+# dist/
+# build/
+# *.o
+# *.pyc
+
+# Logs
+*.log
+
+# Claude Code
+.claude/settings.local.json
