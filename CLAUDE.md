@@ -1,7 +1,6 @@
-# AI-Driven IT Development Lifecycle (AIDLC)
+# AIDD - AI Driven Development
 
-AI駆動IT開発のボイラープレートプロジェクト。
-複数Agentによる調査・議論、TDD、振り返りループを組み込んだ開発フレームワーク。
+Claude Codeで「要求の整理からTDD実装・振り返りまで」を複数AIエージェントと対話しながら一気通貫で進められる、AI駆動開発フレームワーク。
 
 ## Development Process
 
