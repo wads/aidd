@@ -1,6 +1,6 @@
-# Multi-Agent Discussion
+# Multi-Agent Research
 
-複数Agentによる調査・議論・合意形成スキル。
+複数Agentによる並行独立調査スキル。偏りのない多角的分析を行い、人間の意思決定を支援する。
 
 ## Usage
 
@@ -8,47 +8,58 @@ User-invocable: `/multi-agent-discussion`
 
 ## Arguments
 
-- topic: 議論のテーマ（必須）
-- agents: 参加Agent名のリスト（省略時: researcher x2）
-- goal: 期待するアウトプット（省略時: 合意された結論）
+- topic: 調査テーマ（必須）
+- perspectives: 分割軸のヒント（省略時: Claude Codeがテーマに応じて自動決定）
+- goal: 期待するアウトプット（省略時: 選択肢の整理と推奨案の提示）
 
 ## Process
 
-1. **Preparation (準備)**
-   - 議論テーマと目標を確認
-   - 参加Agentを決定
+1. **Theme Analysis (テーマ分析)**
+   - テーマの性質を分析し、適切な分割軸を決定する
+   - 分割軸の例: バックエンド/フロントエンド、UI/アプリケーション/データ、技術A/技術B等
+   - 各軸に対して2名以上のAgentを割り当てる（同じ調査を独立に実施させるため）
+   - 分割軸とAgent構成を人間に提示して確認
 
-2. **Research (調査)**
-   - 各researcherが独立して調査を実施
-   - 調査結果をSendMessageで共有
+2. **Parallel Research (並行調査)**
+   - 各Agentが独立に並行して調査を実施
+   - Agent間の情報共有は行わない（独立性の確保）
+   - 各Agentは調査結果を構造化して報告
 
-3. **Discussion (議論)**
-   - 各Agentが意見を表明
-   - 相違点を明確化
-   - 代替案を検討
+3. **Synthesis (統合)**
+   - 各Agentの調査結果を突き合わせる
+   - 共通点: 複数Agentが同じ結論に至った事項
+   - 差分: Agentごとに異なる発見や見解
+   - 選択肢を整理し、各選択肢のPros/Consを明示
 
-4. **Consensus (合意形成)**
-   - 合意できた場合: 結論をまとめる
-   - 合意できない場合: 対立点を整理して人間にエスカレーション
+4. **Present to Human (人間への提示)**
+   - 整理された選択肢と推奨案を人間に提示
+   - 最終判断は常に人間が行う
 
 5. **Record (記録)**
-   - 議論結果を `tasks/decisions-log.md` に記録
-   - 必要に応じてADRを作成
+   - 調査結果と人間の決定を `tasks/decisions-log.md` に記録
+   - アーキテクチャに関わる決定は `docs/adr/` にADRを作成
 
 ## Output Format
 
 ```markdown
-## Discussion: [topic]
+## Research: [topic]
 - Date: [YYYY-MM-DD]
-- Participants: [agent list]
-- Result: [Consensus | Escalated]
+- Perspectives: [分割軸]
+- Agents: [Agent数と割り当て]
 
-### Summary
-[議論の要約]
+### Findings
+#### Common (全Agentで共通)
+[共通の発見事項]
 
-### Decision
-[合意された結論、またはエスカレーション理由]
+#### Divergent (Agentごとの差分)
+[異なる発見や見解]
 
-### Action Items
-- [action 1]
+### Options
+[選択肢の整理とPros/Cons]
+
+### Recommendation
+[推奨案と根拠]
+
+### Human Decision
+[人間の判断を記録]
 ```

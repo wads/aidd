@@ -1,22 +1,14 @@
 # AIDD - AI Driven Development
 
-Claude Codeで「要求の整理からTDD実装・振り返りまで」を複数AIエージェントと対話しながら一気通貫で進められる、AI駆動開発フレームワーク。
+タスクの規模に応じたプロセスで、品質を保ちながら開発を進めるAI駆動開発フレームワーク。
 
-## Development Process
+## Default Process (Lite mode)
 
-@docs/process/development-workflow.md
+```
+要求確認 → TDD実装 → (判断があればADR記録) → 完了 → 「振り返りしますか？」(任意)
+```
 
-## Agent Team Guide
-
-@docs/process/agent-team-guide.md
-
-## TDD Guide
-
-@docs/process/tdd-guide.md
-
-## Human Checkpoints
-
-@docs/process/human-checkpoints.md
+開発を始めるときは `/dev` を使用する。規模に応じて Standard・Full モードも選択可能。
 
 ## Project Configuration
 
@@ -33,7 +25,8 @@ Claude Codeで「要求の整理からTDD実装・振り返りまで」を複数
 
 ## Key Skills
 
-- `/multi-agent-discussion` - 複数Agentで調査・議論・合意形成
+- `/dev` - 開発メインスキル（Lite/Standard/Full モード選択）
+- `/multi-agent-discussion` - 複数Agentによる並行独立調査
 - `/tdd-cycle` - TDDサイクル（Red-Green-Refactor）
-- `/retrospective` - 振り返り（KPT）
+- `/retrospective` - 振り返り（KPT、任意）
 - `/worktree-setup` - git worktreeセットアップ

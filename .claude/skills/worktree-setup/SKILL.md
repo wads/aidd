@@ -16,12 +16,12 @@ User-invocable: `/worktree-setup`
 
 1. **Confirm (確認)**
    - 作成するbranch名を提示: `[type]/[feature]`
-   - worktreeディレクトリ名を提示: `../aidlc-[type]-[feature]`
+   - worktreeディレクトリ名を提示: `../[project]-[type]-[feature]`（プロジェクト名は自動取得）
    - 人間に確認
 
 2. **Create Worktree**
    ```
-   git worktree add ../aidlc-[type]-[feature] -b [type]/[feature]
+   git worktree add ../[project]-[type]-[feature] -b [type]/[feature]
    ```
 
 3. **Verify**

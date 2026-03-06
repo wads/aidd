@@ -1,29 +1,28 @@
 # AIDD - AI Driven Development
 
-Claude Codeで「要求の整理からTDD実装・振り返りまで」を複数AIエージェントと対話しながら一気通貫で進められる、AI駆動開発のボイラープレートです。
+タスクの規模に応じたプロセスで、品質を保ちながら開発を進めるAI駆動開発のボイラープレートです。
+
+デフォルトは最小プロセス（Lite モード）。必要に応じて要件定義・設計・マルチAgent調査を追加できます。
 
 ## Directory Structure
 
 ```
 aidd/
-├── CLAUDE.md                  # エントリポイント（@importsでプロセス文書を参照）
+├── CLAUDE.md                  # エントリポイント（軽量）
 ├── .claude/
-│   ├── agents/                # カスタムAgent定義
-│   │   ├── researcher.md      #   調査・情報収集
-│   │   ├── developer.md       #   TDD実装
-│   │   └── reviewer.md        #   レビュー・品質
 │   └── skills/                # カスタムSkill定義
-│       ├── multi-agent-discussion/SKILL.md
-│       ├── tdd-cycle/SKILL.md
-│       ├── retrospective/SKILL.md
-│       └── worktree-setup/SKILL.md
+│       ├── dev/SKILL.md                       # 開発メイン（Lite/Standard/Full）
+│       ├── multi-agent-discussion/SKILL.md    # 並行独立調査
+│       ├── tdd-cycle/SKILL.md                 # TDDサイクル
+│       ├── retrospective/SKILL.md             # 振り返り（KPT）
+│       └── worktree-setup/SKILL.md            # git worktreeセットアップ
 ├── docs/
-│   ├── process/               # プロセス定義
+│   ├── process/               # プロセス定義（Skillから参照）
 │   ├── templates/             # ドキュメントテンプレート
 │   ├── adr/                   # Architecture Decision Records
-│   ├── requirements/          # 要求定義
-│   ├── specifications/        # 要件定義
-│   └── designs/               # 詳細設計
+│   ├── requirements/          # 要求定義（Full モード）
+│   ├── specifications/        # 要件定義（Standard・Full モード）
+│   └── designs/               # 詳細設計（Full モード）
 ├── tasks/
 │   ├── todo.md                # TODOリスト
 │   ├── lessons.md             # 教訓・ベストプラクティス
@@ -150,10 +149,8 @@ claude
 
 ```bash
 # 既存プロジェクトのルートで実行
-# aidd/ は本ボイラープレートのクローン先パス
 
-# .claude/ ディレクトリ（agents, skills）をコピー
-cp -r /path/to/aidd/.claude/agents .claude/agents
+# .claude/skills をコピー
 cp -r /path/to/aidd/.claude/skills .claude/skills
 
 # docs/ と tasks/ をコピー
@@ -163,98 +160,54 @@ cp -r /path/to/aidd/tasks .
 
 ### 2. Create or update CLAUDE.md
 
-既存の CLAUDE.md がある場合は、以下のセクションを追記:
-
-```markdown
-## Development Process
-@docs/process/development-workflow.md
-
-## Agent Team Guide
-@docs/process/agent-team-guide.md
-
-## TDD Guide
-@docs/process/tdd-guide.md
-
-## Human Checkpoints
-@docs/process/human-checkpoints.md
-```
-
 既存の CLAUDE.md がない場合は、ボイラープレートのものをコピーして編集:
 
 ```bash
 cp /path/to/aidd/CLAUDE.md .
 ```
 
+既存の CLAUDE.md がある場合は、以下のセクションを追記:
+
+```markdown
+## Default Process (Lite mode)
+
+要求確認 → TDD実装 → (判断があればADR記録) → 完了 → 「振り返りしますか？」(任意)
+
+開発を始めるときは `/dev` を使用する。
+
+## Key Skills
+
+- `/dev` - 開発メインスキル（Lite/Standard/Full モード選択）
+- `/multi-agent-discussion` - 複数Agentによる並行独立調査
+- `/tdd-cycle` - TDDサイクル（Red-Green-Refactor）
+- `/retrospective` - 振り返り（KPT、任意）
+- `/worktree-setup` - git worktreeセットアップ
+```
+
 ### 3. Update Project Configuration
 
 CLAUDE.md の Project Configuration をプロジェクトに合わせて更新。
 
-#### Go project
-
-```markdown
-- **Test command**: `go test ./...`
-- **Build command**: `go build ./cmd/server`
-- **Lint command**: `golangci-lint run`
-```
-
-#### Next.js project
-
-```markdown
-- **Test command**: `npm test`
-- **Build command**: `npm run build`
-- **Lint command**: `npm run lint`
-```
-
-#### Python/uv project
-
-```markdown
-- **Test command**: `uv run pytest`
-- **Build command**: `uv build`
-- **Lint command**: `uv run ruff check .`
-```
-
-### 4. Adjust directory mapping
-
-既存プロジェクトのディレクトリ構成に合わせて CLAUDE.md を調整:
-
-```markdown
-## Directory Structure
-- `cmd/` - エントリポイント (Go)
-- `internal/` - 内部パッケージ (Go)
-- `app/` - Next.js App Router
-- `src/` - ソースコード (Python)
-- `tests/` or `test/` - テストコード
-```
-
-### 5. Commit
+### 4. Commit
 
 ```bash
-git add .claude/agents .claude/skills docs/ tasks/ CLAUDE.md
+git add .claude/skills docs/ tasks/ CLAUDE.md
 git commit -m "feat: adopt AIDD development framework"
 ```
 
-## Development Process Flow
+## Development Process
 
-```
-[1.要求確認] --> 人間承認 --> [2.要件定義] --> 人間承認 --> [3.ADR作成]
-    --> 人間承認 --> [4.詳細設計] --> 人間承認 --> [5.worktree作成]
-    --> [6.TDD実装] --> 人間確認 --> [7.振り返り]
-```
+3つのモードからタスク規模に応じて選択:
+
+| Mode | Use case | Process |
+|------|----------|---------|
+| Lite（default） | バグ修正、小機能追加 | 要求確認 → TDD → (ADR) → 完了 |
+| Standard | 中規模機能、技術選定 | Lite + 要件定義 + Agent調査 + ADR |
+| Full | 大規模変更、新アーキテクチャ | Standard + 詳細設計 + フルドキュメント |
 
 詳細は [docs/process/development-workflow.md](docs/process/development-workflow.md) を参照。
 
 ## Customization
-
-### Agent の追加
-
-`.claude/agents/` に新しいAgent定義を追加:
-
-```bash
-# 例: architect agent
-vim .claude/agents/architect.md
-```
-
-詳細は [docs/process/agent-team-guide.md](docs/process/agent-team-guide.md) を参照。
 
 ### Skill の追加
 

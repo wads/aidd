@@ -9,16 +9,13 @@ User-invocable: `/retrospective`
 ## Arguments
 
 - topic: 振り返りの対象（必須）
-- participants: 参加Agent名（省略時: developer + reviewer）
-
 ## Process
 
 1. **Setup (準備)**
    - 振り返り対象のフェーズ/タスクを確認
-   - 参加Agentを決定
 
-2. **KPT Discussion (KPT議論)**
-   - developer と reviewer が以下を議論:
+2. **KPT Analysis (KPT分析)**
+   - 以下の観点で振り返りを実施:
      - **Keep**: うまくいったこと、続けること
      - **Problem**: 問題だったこと、改善が必要なこと
      - **Try**: 次に試すこと、改善案

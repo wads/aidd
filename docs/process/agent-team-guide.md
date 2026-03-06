@@ -1,39 +1,36 @@
-# Agent Team Guide
+# Dynamic Agent Guide
 
-カスタムAgentの運用ガイド。
+マルチAgent調査における動的ペルソナ設計のガイド。
 
-## Agent Roster
+## Design Principles
 
-| Agent | Role | Description |
-|-------|------|-------------|
-| researcher | 調査・情報収集 | コードベース調査、技術調査、設計支援 |
-| developer | TDD実装 | テスト作成、実装、設計書作成 |
-| reviewer | レビュー・品質 | コードレビュー、品質チェック、議論進行 |
+- Agentのペルソナ・分割軸・人数はテーマに応じてClaude Codeが動的に決定する
+- 各Agentは独立に並行調査を行い、結果のみを報告する
+- 同じ分割軸に対して2名以上のAgentを割り当て、独立した調査の突き合わせで偏りを減らす
+- 最終判断は常に人間が行う
 
-## Usage Patterns
+## Perspective Examples
 
-### Investigation (調査)
-researcher x2 で並行調査 -> 結果をSendMessageで共有 -> 合意形成
+テーマに応じた分割軸の例:
 
-### Implementation (実装)
-developer が TDD で実装 -> reviewer がレビュー -> フィードバック反映
+| テーマ | 分割軸の例 |
+|--------|-----------|
+| システム設計 | フロントエンド / バックエンド / インフラ |
+| データ設計 | UI / アプリケーション / データ |
+| 技術選定 | 技術A / 技術B / 技術C |
+| パフォーマンス | レイテンシ / スループット / リソース効率 |
+| セキュリティ | 認証 / 認可 / データ保護 |
 
-### Discussion (議論)
-researcher + reviewer が議論 -> 合意またはエスカレーション
+上記は一例であり、テーマの性質に応じて自由に設定する。
+
+## Agent Count
+
+- 各分割軸に対して2名以上を推奨（独立調査の突き合わせのため）
+- 全体で2-6名程度が目安
+- テーマの複雑さに応じて調整する
 
 ## Communication Protocol
 
-- Agent間のコミュニケーションは `SendMessage` を使用
-- メッセージには必ず「目的」「調査結果/意見」「提案」を含める
-- 合意できない場合は理由を明示して人間にエスカレーション
-
-## Adding New Agents
-
-必要に応じて以下のAgentを追加可能:
-- **architect**: システム全体のアーキテクチャ設計
-- **facilitator**: 議論のファシリテーション、合意形成の支援
-
-追加手順:
-1. `.claude/agents/<agent-name>.md` にAgent定義を作成
-2. このガイドのAgent Rosterに追記
-3. CLAUDE.mdの参照を更新
+- 調査中のAgent間の情報共有は行わない（独立性の確保）
+- 調査完了後、各Agentは構造化された形式で結果を報告する
+- 報告には「目的」「調査結果」「提案」を含める

@@ -43,6 +43,13 @@ User-invocable: `/tdd-cycle`
 - Green phaseでは「動く最小のコード」を書く
 - Refactor phaseでのみコード改善を行う
 
+## Testing Principles
+
+- **テストの4つの柱**: 退行保護、リファクタリング耐性、迅速なフィードバック、保守性
+- **テスト優先順位**: 出力ベース > 状態ベース > 通信ベース（モック）
+- **モック方針**: 外部依存（DB, API, ファイルシステム）のみモック。ドメインモデルはモックしない
+- **Classical派を優先**: 可能な限り実オブジェクトを使用
+
 ## Reference
 
 詳細は `docs/process/tdd-guide.md` を参照。
