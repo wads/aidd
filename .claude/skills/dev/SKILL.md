@@ -53,6 +53,13 @@ Standard モードに以下を追加:
 - **Requirements (要求定義)**: `docs/requirements/` にフォーマルな要求定義を作成
 - **Detailed Design (詳細設計)**: 実装方針を設計し `docs/designs/` に設計書を作成。レビューを実施。人間の承認を得る
 
+## Git & PR ワークフロー
+
+- **Draft PR作成**: 最初の TODO 完了後に Draft PR を作成する
+- **TODO完了時**: 各TODOが完了したらコミットして Draft PR へ push し、今後の進め方を確認する
+- **コミットメッセージ**: Conventional Commits 形式で記述する
+- **PR本文**: 完了済み・残作業のチェックリストを含め、進捗を反映する
+
 ## Mode Selection Guide
 
 迷った場合の目安:
