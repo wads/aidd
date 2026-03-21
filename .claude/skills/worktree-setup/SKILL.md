@@ -1,10 +1,12 @@
+---
+name: worktree-setup
+description: git worktree + topic branchセットアップスキル。
+user-invocable: true
+---
+
 # Worktree Setup
 
 git worktree + topic branchセットアップスキル。
-
-## Usage
-
-User-invocable: `/worktree-setup`
 
 ## Arguments
 

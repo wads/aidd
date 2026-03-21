@@ -1,10 +1,12 @@
+---
+name: tdd-cycle
+description: TDDサイクル（Red-Green-Refactor）実行スキル。
+user-invocable: true
+---
+
 # TDD Cycle
 
 TDDサイクル（Red-Green-Refactor）実行スキル。
-
-## Usage
-
-User-invocable: `/tdd-cycle`
 
 ## Arguments
 

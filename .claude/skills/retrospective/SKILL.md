@@ -1,10 +1,12 @@
+---
+name: retrospective
+description: KPT形式の振り返りスキル。
+user-invocable: true
+---
+
 # Retrospective
 
 KPT形式の振り返りスキル。
-
-## Usage
-
-User-invocable: `/retrospective`
 
 ## Arguments
 

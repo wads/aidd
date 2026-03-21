@@ -1,10 +1,12 @@
+---
+name: dev
+description: AI駆動開発のメインスキル。タスク規模に応じたモード（Lite/Standard/Full）で開発プロセスを実行する。
+user-invocable: true
+---
+
 # Dev
 
 AI駆動開発のメインスキル。タスク規模に応じたモード（Lite/Standard/Full）で開発プロセスを実行する。
-
-## Usage
-
-User-invocable: `/dev`
 
 ## Arguments
 

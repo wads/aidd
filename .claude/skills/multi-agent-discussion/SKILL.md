@@ -1,10 +1,12 @@
+---
+name: multi-agent-discussion
+description: 複数Agentによる並行独立調査スキル。偏りのない多角的分析を行い、人間の意思決定を支援する。
+user-invocable: true
+---
+
 # Multi-Agent Research
 
 複数Agentによる並行独立調査スキル。偏りのない多角的分析を行い、人間の意思決定を支援する。
-
-## Usage
-
-User-invocable: `/multi-agent-discussion`
 
 ## Arguments
 
