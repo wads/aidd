@@ -1,80 +1,38 @@
 ---
 name: dev
-description: AI駆動開発のメインスキル。タスク規模に応じたモード（Lite/Standard/Full）で開発プロセスを実行する。
+description: AI 駆動開発の標準フローへの薄い入口。GitHub Issueの type-* ラベルからルート（実施フェーズ構成）を特定し、各フェーズの skill（requirements、ui-prototyping、adr、design-docs、implementation-plan、tdd-cycle、review、retrospective）へ振り分ける。orchestrator 完成までの移行期間用。
 user-invocable: true
 ---
 
 # Dev
 
-AI駆動開発のメインスキル。タスク規模に応じたモード（Lite/Standard/Full）で開発プロセスを実行する。
+## いつ使うか
 
-## Arguments
+- GitHub Issueに着手して開発を始めるとき（P1 着手）
+- Issue のタイプに応じた進め方を確認したいとき
 
-- request: 実装する内容（必須）
-- mode: プロセスモード（省略時: lite）
-  - lite: デフォルト。要求確認 + TDD実装
-  - standard: lite + 要件定義 + マルチAgent調査
-  - full: standard + 詳細設計 + フルドキュメント化
+## 入力
 
-## Process
+- `ticket`: GitHub Issue 番号（`type-*` ラベルが付与されていること）
 
-### Lite モード（デフォルト）
+## 出力
 
-1. **Confirm (要求確認)**
-   - 要求内容を整理して人間に提示
-   - 実装スコープと受け入れ基準を確認
-   - 人間の承認を得てから次へ進む
+- 合意済みのルート（実施フェーズ構成）と P2.5 実施要否
+- 各フェーズ skill の実行結果
 
-2. **TDD Implementation (TDD実装)**
-   - `/tdd-cycle` を実行してRed-Green-Refactorサイクルで実装
-   - テスト実行コマンドは CLAUDE.md の Test command を使用
+## 扱う Intent
 
-3. **ADR (判断の記録、該当時のみ)**
-   - 実装中に技術的な判断があった場合、`docs/adr/` に軽量ADRを記録
-   - テンプレート: `docs/templates/adr-template.md`
+- Product Intent（入力）。各フェーズの Intent はそれぞれの skill が扱う
 
-4. **Complete (完了)**
-   - 実装結果を報告
-   - 「振り返りしますか？」と確認
-   - 希望すれば `/retrospective` を実行
+## ルール
 
-### Standard モード
+- タイプラベルのないIssue には着手しない。`product-intent` での整備へ差し戻す
+- フェーズの実施有無はルート（`routes.md`）が決め、成果物の深さは判断駆動の原則が決める
+- 各フェーズの exit 条件（人間承認）を飛ばさない
 
-Lite モードの Step 1 と Step 2 の間に以下を追加:
+## 読むべき補助ファイル
 
-- **Specification (要件定義)**: 要求を具体的な要件に分解。`docs/specifications/` に作成。人間の承認を得る
-- **Multi-Agent Research (マルチAgent調査)**: `/multi-agent-discussion` で技術選択肢を調査。人間が技術決定
-- **ADR (技術決定の記録)**: 調査結果と決定を `docs/adr/` に記録。人間の承認を得る
-
-### Full モード
-
-Standard モードに以下を追加:
-
-- **Requirements (要求定義)**: `docs/requirements/` にフォーマルな要求定義を作成
-- **Detailed Design (詳細設計)**: 実装方針を設計し `docs/designs/` に設計書を作成。レビューを実施。人間の承認を得る
-
-## UI変更のガイドライン
-
-- **機能変更とレイアウト変更を分けて進める**: まず機能的な変更（モーダル追加、データ表示の修正等）のみ実装し、レイアウト変更（配置、サイズ、余白等）はユーザーの明示的な要望があった場合のみ行う
-- **既存のレイアウトを尊重する**: 特に指示がない限り、既存の画面構成（テーブル構造、カラム配置等）は維持する
-
-## Git & PR ワークフロー
-
-- **ブランチ戦略の確認**: push/merge操作の前に、CLAUDE.mdに記載されたブランチフロー（例: feature → develop → main）を必ず確認する
-- **Draft PR作成**: 最初の TODO 完了後に Draft PR を作成する
-- **TODO完了時**: 各TODOが完了したらコミットして Draft PR へ push し、今後の進め方を確認する
-- **コミットメッセージ**: Conventional Commits 形式で記述する
-- **PR本文**: 完了済み・残作業のチェックリストを含め、進捗を反映する
-
-## Mode Selection Guide
-
-迷った場合の目安:
-- **Lite**: 1-2ファイルの変更、既知パターンの適用
-- **Standard**: 複数ファイルの変更、技術選定が必要
-- **Full**: モジュール横断の変更、新アーキテクチャ導入
-
-## Reference
-
-- プロセス詳細: `docs/process/development-workflow.md`
-- チェックポイント: `docs/process/human-checkpoints.md`
-- マルチAgent調査: `docs/process/agent-team-guide.md`
+- `workflow.md`
+- `routes.md`
+- `escalation.md`
+- `examples.md`
