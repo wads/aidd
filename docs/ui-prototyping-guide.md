@@ -21,9 +21,9 @@
 
 ## 同梱している preset
 
-- `presets/react-storybook/ec-frontend/project-config.md`
+現時点で project 固有の preset は同梱していない。`presets/react-storybook/_template.md` を雛形として、利用する project ごとに `project-config.md` を作成する。
 
-これは React + Storybook 系 preset の具体例であり、project 固有例として扱う。
+> React / Next.js 向け preset（Next.js + React、Storybook 非使用の構成を想定）は今後追加予定。
 
 ## 新しい project を追加する手順
 
