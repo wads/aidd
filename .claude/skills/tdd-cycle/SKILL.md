@@ -1,57 +1,31 @@
 ---
 name: tdd-cycle
-description: TDDサイクル（Red-Green-Refactor）実行スキル。
-user-invocable: true
+description: TDD サイクルを回す skill。実装する振る舞いを TODO リストに分解し、失敗するテストの確認（Red）、最小実装（Green）、重複除去（Refactor）を繰り返して進める。テストの出所を AC・設計書に固定することで、テストが実装と独立であることを保証し、ゲート 1（テスト green）の信頼性を支える。
 ---
 
 # TDD Cycle
 
-TDDサイクル（Red-Green-Refactor）実行スキル。
+## いつ使うか
 
-## Arguments
+- 振る舞いベースで小さく実装を進めたいとき
+- `dev` のタイプ別ルートから実装フェーズ（P6）へ入るとき
 
-- feature: 実装する機能の説明（必須）
-- test_command: テスト実行コマンド（省略時: CLAUDE.mdのTest commandを使用）
+## 入力
 
-## Process
+- `feature`（実装する振る舞い）
+- 確定版の受入れ条件（AC-ID、テストレベル割当）と実装計画（あれば）
+- `test_command`（任意）
 
-1. **Confirm (確認)**
-   - 実装する振る舞いの一覧を提示
-   - 人間に実装順序を確認
+## 出力
 
-2. **Red (失敗するテスト)**
-   - テストファイルに失敗するテストを追加
-   - テスト実行 -> 失敗を確認
-   - 人間に確認: "Red phase complete. Proceed to Green?"
+- Red / Green / Refactor を経た実装結果
+- 受入れ条件⇄テスト対応表 → PR 説明（各テストがどの AC-ID を検証するか）
 
-3. **Green (最小実装)**
-   - テストを通す最小限のコードを実装
-   - テスト実行 -> 成功を確認
-   - 人間に確認: "Green phase complete. Proceed to Refactor?"
+## 扱う Intent
 
-4. **Refactor (リファクタリング)**
-   - コードの改善（重複除去、命名改善等）
-   - テスト実行 -> 成功を維持
-   - 人間に確認: "Refactor complete. Commit?"
+- Verification Intent（テストとして作成）/ Product・Design Intent（入力）
 
-5. **Repeat or Commit**
-   - 次の振る舞いがあれば Step 2 に戻る
-   - なければcommit
+## 読むべき補助ファイル
 
-## Guidelines
-
-- 1サイクルの変更は30行以下を目標
-- テストは振る舞いを検証する（実装の詳細ではなく）
-- Green phaseでは「動く最小のコード」を書く
-- Refactor phaseでのみコード改善を行う
-
-## Testing Principles
-
-- **テストの4つの柱**: 退行保護、リファクタリング耐性、迅速なフィードバック、保守性
-- **テスト優先順位**: 出力ベース > 状態ベース > 通信ベース（モック）
-- **モック方針**: 外部依存（DB, API, ファイルシステム）のみモック。ドメインモデルはモックしない
-- **Classical派を優先**: 可能な限り実オブジェクトを使用
-
-## Reference
-
-詳細は `docs/process/tdd-guide.md` を参照。
+- `workflow.md`
+- `examples.md`

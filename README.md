@@ -1,228 +1,120 @@
-# AIDD - AI Driven Development
+# aidd テンプレート
 
-タスクの規模に応じたプロセスで、品質を保ちながら開発を進めるAI駆動開発のボイラープレートです。
+AI 駆動開発（AIDD）向けの汎用 playbook テンプレート。
 
-デフォルトは最小プロセス（Lite モード）。必要に応じて要件定義・設計・マルチAgent調査を追加できます。
+## 概要
 
-## Directory Structure
+### このプロジェクトのゴール
 
-```
-aidd/
-├── CLAUDE.md                  # エントリポイント（軽量）
-├── .claude/
-│   └── skills/                # カスタムSkill定義
-│       ├── dev/SKILL.md                       # 開発メイン（Lite/Standard/Full）
-│       ├── multi-agent-discussion/SKILL.md    # 並行独立調査
-│       ├── tdd-cycle/SKILL.md                 # TDDサイクル
-│       ├── retrospective/SKILL.md             # 振り返り（KPT）
-│       └── worktree-setup/SKILL.md            # git worktreeセットアップ
-├── docs/
-│   ├── process/               # プロセス定義（Skillから参照）
-│   ├── templates/             # ドキュメントテンプレート
-│   ├── adr/                   # Architecture Decision Records
-│   ├── requirements/          # 要求定義（Full モード）
-│   ├── specifications/        # 要件定義（Standard・Full モード）
-│   └── designs/               # 詳細設計（Full モード）
-├── tasks/
-│   ├── todo.md                # TODOリスト
-│   ├── lessons.md             # 教訓・ベストプラクティス
-│   ├── decisions-log.md       # 意思決定ログ
-│   └── retrospectives/        # 振り返り記録
-├── src/                       # ソースコード
-└── tests/                     # テストコード
-```
+AI 駆動開発を **安全に・継続的に改善しながら回す** ための共通運用ルールと skill を提供する。狙いは次の 2 つを両立させること。
 
-## Quick Start (New Project)
+- **意図（Intent）を失わない**: 「なぜ作るのか」「何を満たせば正しいのか」「なぜその判断をしたのか」を、各工程の成果物に小さく記録し、後から辿れるようにする。AI 駆動開発で蓄積しやすい認知負債を抑える
+- **プロセスを重くしない**: 詳細仕様を大量に書かせるのではなく、**受入れ・品質基準の定義と各ゲートでの検証** で品質を担保する。ドキュメントは「書くべき判断が生じたときだけ」書く（判断駆動）
 
-### Prerequisites
+開発はチケットから始まり、チケットの**タイプ**（feature / bugfix / hotfix / refactoring / chore / spike）に応じて通るフェーズが決まる。各フェーズには人間の承認ゲートがあり、最終決定は常に人間が行う。
 
-- [Claude Code](https://claude.com/claude-code) がインストール済みであること
-- Git がインストール済みであること
+詳細な設計は [開発フェーズとコンテキスト契約](docs/design/0001-dev-phase-decomposition.md) を参照。
 
-### 1. Clone this boilerplate
+### 開発フローの全体像
 
-```bash
-git clone <this-repo-url> my-project
-cd my-project
-rm -rf .git
-git init
+![開発フェーズ・ゲート・コンテキストの全体像](docs/assets/dev-phase-overview.svg)
+
+- 縦の流れがフェーズ、ピンクの楕円が承認ゲート。横の列は成果物（コンテキスト）の行き先を表す
+- 破線の成果物・ゲートは条件付き: ADR・設計書は書くべき判断が生じたときだけ作り（判断駆動）、プロトタイピングは UI 変更時のみ実施する
+- コンテキストは 2 層: **短期**（Jira コメント・PR、マージ後は使い捨て）と **長期**（プロダクト repo の ADR・設計書・テスト、イミュータブル）。マージ前に「短期コンテキストの昇格」で長期価値あるものだけを残す
+- タイプ別にどのフェーズを通るかは [人間向けマニュアル](docs/manual.md#タイプ別ルート) を参照
+
+## 導入
+
+このリポジトリを clone し、各プロジェクトから絶対パスで参照する形で導入する。更新は clone 側で `git pull` する（版管理の方針は将来見直し予定）。
+
+### Claude Code
+
+1. プロジェクトの `.claude/commands/` に、このリポジトリの wrapper を参照する command を置く
+2. プロジェクトの `CLAUDE.md` に共通ルールへの参照と Project Configuration を追加する
+
+```md
+@/path/to/aidd/shared/rules/common.md
+
+## Project Configuration
+- Test command: `npm test`
+- Build command: `npm run build`
+- Lint command: `npm run lint`
 ```
 
-### 2. Configure for your language/framework
+### Codex
 
-#### Go
+プロジェクトの `AGENTS.md` に共通ルールを参照させ、必要に応じて `.agents/skills/` を repo に配置する。
 
-```bash
-go mod init github.com/yourname/my-project
+```md
+@/path/to/aidd/shared/rules/common.md
 ```
 
-CLAUDE.md の Project Configuration を更新:
+## 使い方
 
-```markdown
-- **Test command**: `go test ./...`
-- **Build command**: `go build ./...`
-- **Lint command**: `golangci-lint run`
+```
+# 1. チケットを作る（タイプを確定）
+> /product-intent 検索画面の表示崩れを直したい
+
+# 2. 着手する（タイプからルートが決まる）
+> /dev ECS-12345
 ```
 
-.gitignore に追記:
+以降は各フェーズ skill が順に呼ばれ、節目で人間の承認を求める。
 
-```gitignore
-# Go
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-bin/
-```
+- はじめての方: [チュートリアル](docs/tutorial.md)（最短の流れ）
+- 各フェーズで人間が何を判断するか: [人間向けマニュアル](docs/manual.md)
 
-#### Next.js
+## 構成
 
-```bash
-npx create-next-app@latest . --use-npm  # or --use-pnpm, --use-yarn
-```
+| 場所 | 役割 |
+|---|---|
+| `.agents/skills/` | skill 本文の source of truth |
+| `.claude/commands/` | Claude Code から呼ぶ薄い wrapper |
+| `shared/rules/` | 共通ルール |
+| `shared/templates/` | 汎用テンプレート |
+| `docs/` | ADR、設計、チュートリアル、マニュアル、調査メモ |
 
-CLAUDE.md の Project Configuration を更新:
+## Skills
 
-```markdown
-- **Test command**: `npm test`
-- **Build command**: `npm run build`
-- **Lint command**: `npm run lint`
-```
+### 開発プロセス（フェーズ）の skill
 
-.gitignore に追記:
+チケット作成から振り返りまでの開発プロセスを構成する skill。フェーズ順。
 
-```gitignore
-# Node.js
-node_modules/
-.next/
-out/
-```
+| skill | フェーズ | 概要 |
+|---|---|---|
+| `product-intent` | 入口 | 要求をタイプ付きの Jira チケットへ整える（`type-*` ラベル必須） |
+| `dev` | P1 着手 | `type-*` ラベルからルートを特定し、各フェーズ skill へ振り分ける |
+| `requirements` | P2 要求整理 | 受入れ条件・品質条件を ID・信頼性マーカー・検証手段タグ付きで確定する |
+| `ui-prototyping` | P2.5 | UI の試作と PdM とのすり合わせ、実装ハンドオフ文書の生成（UI 変更時のみ） |
+| `adr` | P3 技術判断 | 技術判断を ADR としてイミュータブルに記録する（判断駆動） |
+| `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
+| `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
+| `tdd-cycle` | P6 実装 | TDD サイクルで実装し、テストを AC-ID に対応付ける |
+| `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定 |
+| `context-snapshot` | P7 | チケットの意図と検証状態を HTML スナップショットに生成する |
+| `retrospective` | P8 振り返り | KPT 形式で振り返り、playbook 改善へつなげる |
+| `multi-agent-discussion` | P3 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
 
-#### Python (uv)
+### 開発プロセス外の skill
 
-```bash
-uv init
-# or with a specific Python version:
-uv init --python 3.12
-```
+| skill | 概要 |
+|---|---|
+| `workspace-hygiene` | 作業開始前の差分整理と topic branch 作成（P1 で利用） |
+| `ui-migration` | UI フレームワーク移行のルール抽出、変換、検証を管理する |
+| `daily-sentry-check` | wbb の日次 Sentry 監視を集計し、シート更新案と Slack 投稿文をまとめる |
 
-CLAUDE.md の Project Configuration を更新:
+## 設計メモ
 
-```markdown
-- **Test command**: `uv run pytest`
-- **Build command**: `uv build`
-- **Lint command**: `uv run ruff check .`
-```
+- 開発フェーズとコンテキスト契約: [docs/design/0001-dev-phase-decomposition.md](docs/design/0001-dev-phase-decomposition.md)
+- Intent Driven Development: [docs/design/intent-driven-development.md](docs/design/intent-driven-development.md)
+- ADR: [docs/adr/0001-restructure-skills-for-codex-and-claude.md](docs/adr/0001-restructure-skills-for-codex-and-claude.md)
+- skill 再編の設計: [docs/design/skills-restructure.md](docs/design/skills-restructure.md)
+- UI Prototyping: [docs/ui-prototyping-guide.md](docs/ui-prototyping-guide.md)
 
-.gitignore に追記:
+## 追加・修正ルール
 
-```gitignore
-# Python
-__pycache__/
-*.pyc
-.venv/
-dist/
-*.egg-info/
-```
-
-### 3. Initial commit
-
-```bash
-git add -A
-git commit -m "feat: initialize project from AIDD boilerplate"
-```
-
-### 4. Start development
-
-```bash
-claude
-```
-
-初めての方は [Tutorial](docs/tutorial.md) に沿って進めてください。
-
-## Adapting to an Existing Project
-
-既存プロジェクトにAIDDフレームワークを導入する手順。
-
-### 1. Copy AIDD files
-
-```bash
-# 既存プロジェクトのルートで実行
-
-# .claude/skills をコピー
-cp -r /path/to/aidd/.claude/skills .claude/skills
-
-# docs/ と tasks/ をコピー
-cp -r /path/to/aidd/docs .
-cp -r /path/to/aidd/tasks .
-```
-
-### 2. Create or update CLAUDE.md
-
-既存の CLAUDE.md がない場合は、ボイラープレートのものをコピーして編集:
-
-```bash
-cp /path/to/aidd/CLAUDE.md .
-```
-
-既存の CLAUDE.md がある場合は、以下のセクションを追記:
-
-```markdown
-## Default Process (Lite mode)
-
-要求確認 → TDD実装 → (判断があればADR記録) → 完了 → 「振り返りしますか？」(任意)
-
-開発を始めるときは `/dev` を使用する。
-
-## Key Skills
-
-- `/dev` - 開発メインスキル（Lite/Standard/Full モード選択）
-- `/multi-agent-discussion` - 複数Agentによる並行独立調査
-- `/tdd-cycle` - TDDサイクル（Red-Green-Refactor）
-- `/retrospective` - 振り返り（KPT、任意）
-- `/worktree-setup` - git worktreeセットアップ
-```
-
-### 3. Update Project Configuration
-
-CLAUDE.md の Project Configuration をプロジェクトに合わせて更新。
-
-### 4. Commit
-
-```bash
-git add .claude/skills docs/ tasks/ CLAUDE.md
-git commit -m "feat: adopt AIDD development framework"
-```
-
-## Development Process
-
-3つのモードからタスク規模に応じて選択:
-
-| Mode | Use case | Process |
-|------|----------|---------|
-| Lite（default） | バグ修正、小機能追加 | 要求確認 → TDD → (ADR) → 完了 |
-| Standard | 中規模機能、技術選定 | Lite + 要件定義 + Agent調査 + ADR |
-| Full | 大規模変更、新アーキテクチャ | Standard + 詳細設計 + フルドキュメント |
-
-詳細は [docs/process/development-workflow.md](docs/process/development-workflow.md) を参照。
-
-## Customization
-
-### Skill の追加
-
-`.claude/skills/<skill-name>/SKILL.md` に新しいSkill定義を追加:
-
-```bash
-mkdir .claude/skills/my-skill
-vim .claude/skills/my-skill/SKILL.md
-```
-
-### Process の変更
-
-`docs/process/` 内のファイルを編集してプロセスをカスタマイズ。
-振り返り（`/retrospective`）で得た改善提案を反映する運用を推奨。
-
-## License
-
-MIT
+- skill は `.agents/skills/` に追加する（source of truth）
+- Claude Code の command は `.claude/commands/` に薄い wrapper として追加する
+- 共通ルールは `shared/rules/` に追加する
+- playbook 自体の改善は、各プロジェクトの振り返り（P8）からこのリポジトリへの PR として還流する
