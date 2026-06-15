@@ -10,7 +10,7 @@
 
 ## 2. 入力の読み込み
 
-- P2 の確定版 AC/QC（Jira コメント）
+- P2 の確定版 AC/QC（Issue コメント）
 - 関連 ADR（技術判断の理由はここに寄せる。設計書に重複させない）
 - 既存設計書・既存コードの構造（責務分割・依存方向の現状）
 
@@ -31,12 +31,13 @@
 
 ## 5. 記録
 
-- `docs/design/{連番}-{チケット番号}-short-title.md` として保存（連番は 5 桁 0 埋め、`docs/design/` 内で独立）
+- `{records_root}/design/{連番}-short-title.md` として保存（連番は 4 桁 0 埋め、design ディレクトリ内で独立）。Binding に `service` がある場合はサービス固有設計を `{records_root}/services/{service}/design/`、横断を `{records_root}/system/design/` に置く
+- frontmatter（`type` / `scope` / `status` / `updated`）を必ず付与する
 - 既存設計書を置き換える場合は、新しい設計書に「Replaces: {旧文書}」を明記する（旧文書は書き換えない）
-- Jira チケットへリンクをコメントする
+- 対象の GitHub Issue へリンクをコメントする
 
 ## 注意事項
 
 - 技術選定の理由・捨てた選択肢は ADR の責務。設計書からは参照のみ
 - 設計中に新しい技術判断が生まれたら P3（`adr`）へ戻ってよい（P3 ⇄ P4 は反復可能）
-- 設計が要求の矛盾を露呈させた場合は P2 へ差し戻す（Intent Delta を Jira へ追記してから）
+- 設計が要求の矛盾を露呈させた場合は P2 へ差し戻す（Intent Delta を Issue へ追記してから）

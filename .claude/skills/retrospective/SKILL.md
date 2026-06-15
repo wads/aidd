@@ -1,6 +1,7 @@
 ---
 name: retrospective
 description: KPT 形式で振り返りを行う skill。タスク完了後やフェーズ区切りで、Keep、Problem、Try を整理し、次の改善アクションを明確にしたいときに使う。
+user-invocable: true
 ---
 
 # Retrospective
@@ -16,8 +17,8 @@ description: KPT 形式で振り返りを行う skill。タスク完了後やフ
 
 ## 出力
 
-- KPT 形式の振り返り結果 → Jira チケットへコメント
-- 採用された改善 → playbook への PR またはチケット
+- KPT 形式の振り返り結果 → GitHub Issueへコメント
+- 採用された改善 → playbook への PR またはIssue
 
 ## 扱う Intent
 

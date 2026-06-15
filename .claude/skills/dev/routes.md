@@ -1,6 +1,6 @@
 # タイプ別ルート
 
-チケットの `type-*` ラベルから実施フェーズを決める。詳細な契約は `docs/design/0001-dev-phase-decomposition.md` を正とする。
+Issue の `type-*` ラベルから実施フェーズを決める。詳細な契約は `docs/design/0001-dev-phase-decomposition.md` を正とする。
 
 | フェーズ（skill） | feature | bugfix | refactoring | chore | spike |
 |---|---|---|---|---|---|
@@ -14,6 +14,6 @@
 | P7 検証・レビュー（review + context-snapshot） | ✓ | ✓ | ✓ | 簡易 | 報告のレビュー |
 | P8 振り返り（retrospective） | 推奨 | 任意 | 任意 | − | 必須 |
 
-- hotfix は bugfix の緊急変形: P6・P7 の最小構成で先に直し、事後に P8 と記録（Intent Delta、必要なら ADR）を必須にする。チケットの事後作成を許容する
+- hotfix は bugfix の緊急変形: P6・P7 の最小構成で先に直し、事後に P8 と記録（Intent Delta、必要なら ADR）を必須にする。Issue の事後作成を許容する
 - 「判断駆動」= フェーズには入るが、成果物（ADR・設計書）は書くべき判断が生じたときだけ作る
-- タイプが混在するチケットは分割を提案する。分割できなければ feature のルートに乗せる
+- タイプが混在するIssue は分割を提案する。分割できなければ feature のルートに乗せる

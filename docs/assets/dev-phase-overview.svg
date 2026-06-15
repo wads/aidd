@@ -1,6 +1,6 @@
 <svg width="680" viewBox="0 0 680 1150" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>開発フェーズ・ゲート・コンテキストの全体像</title>
-<desc>チケット作成からP8振り返りまでの10フェーズについて、フェーズ間の人間承認ゲートと、成果物がJira・PR・プロダクトrepoのどこに残るかを示す図</desc>
+<desc>Issue 作成からP8振り返りまでの10フェーズについて、フェーズ間の人間承認ゲートと、成果物がGitHub Issue・PR・プロダクトrepoのどこに残るかを示す図</desc>
 <style>
 text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif}
 .th{font-size:14px;font-weight:500;fill:#2C2C2A}
@@ -22,13 +22,13 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 <rect x="0" y="0" width="680" height="1150" fill="#FFFFFF"/>
 
 <text class="ts" x="125" y="64" text-anchor="middle">フェーズ / skill</text>
-<text class="ts" x="287.5" y="64" text-anchor="middle">Jira チケット</text>
+<text class="ts" x="287.5" y="64" text-anchor="middle">GitHub Issue</text>
 <text class="ts" x="427.5" y="64" text-anchor="middle">Pull Request（短期）</text>
 <text class="ts" x="567.5" y="64" text-anchor="middle">プロダクト repo（長期）</text>
 
 <g>
 <rect class="box" x="40" y="84" width="170" height="56" rx="4"/>
-<text class="th" x="125" y="103" text-anchor="middle" dominant-baseline="central">チケット作成</text>
+<text class="th" x="125" y="103" text-anchor="middle" dominant-baseline="central">Issue 作成</text>
 <text class="ts" x="125" y="125" text-anchor="middle" dominant-baseline="central">product-intent</text>
 </g>
 <g class="c-purple">
@@ -39,7 +39,7 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 <line class="arr" x1="125" y1="140" x2="125" y2="151"/>
 <g class="c-pink">
 <rect x="70" y="151" width="110" height="22" rx="10"/>
-<text class="ts" x="125" y="162" text-anchor="middle" dominant-baseline="central">承認: チケット</text>
+<text class="ts" x="125" y="162" text-anchor="middle" dominant-baseline="central">承認: Issue</text>
 </g>
 <line class="arr" x1="125" y1="173" x2="125" y2="183" marker-end="url(#arrow)"/>
 
@@ -210,5 +210,5 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 </g>
 
 <text class="ts" x="40" y="1106">破線 = 条件付き（判断駆動・タイプ別ルートによる）／ ピンクの楕円 = ゲート</text>
-<text class="ts" x="40" y="1126">紫 = Jira ／ 珊瑚 = PR（短期・使い捨て）／ 緑 = プロダクト repo（長期・不変）</text>
+<text class="ts" x="40" y="1126">紫 = GitHub Issue ／ 珊瑚 = PR（短期・使い捨て）／ 緑 = プロダクト repo（長期・不変）</text>
 </svg>

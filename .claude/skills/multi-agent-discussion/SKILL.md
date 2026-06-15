@@ -1,6 +1,7 @@
 ---
 name: multi-agent-discussion
 description: 複数の独立したエージェントに同じ問いを別々の視点で調査させ、アンカリング（最初の案・既存実装・依頼者の期待への引きずられ）を避けて選択肢を整理する skill。技術選定や設計方針など、単一視点では偏りやすい判断の材料を集めたいときに使う。P3 技術判断（adr）から呼ばれるほか、単体でも使える。
+user-invocable: true
 ---
 
 # Multi-Agent Discussion

@@ -6,7 +6,7 @@
 
 ## Skills
 
-必要に応じて `.agents/skills/` 配下の skill を参照してください。
+必要に応じて `.claude/skills/` 配下の skill（各 `SKILL.md`）を参照してください。
 
 ## Branch / Workspace Hygiene
 

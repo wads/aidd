@@ -1,5 +1,7 @@
 # Skill 再編設計
 
+> **注（aidd テンプレート）**: この文書は出典 playbook の `.agents/skills/` 再編設計を歴史的経緯として残している。本テンプレートの実際の配置は `.claude/skills/`（Claude Code ネイティブ）であり、その判断は [ADR-0002](../adr/0002-adapt-as-aidd-template.md) を参照。
+
 この文書は、`Claude Code` と `Codex` 向けの skill 再編を実装するための設計ドキュメントである。
 意思決定の背景、採否、トレードオフは ADR を参照すること。
 
@@ -119,7 +121,7 @@ docs/
 
 - `dev`: AIDD の入口。モード分岐、ADR、エスカレーションを束ねる
 - `review`: 変更レビュー系を集約する
-- `product-intent`: PdM の要求を Product Intent として整理し、Jira チケットへ落とす workflow を管理する
+- `product-intent`: PdM の要求を Product Intent として整理し、GitHub Issueへ落とす workflow を管理する
 - `ui-migration`: UI 移行系の workflow 群を一つの skill パッケージにまとめる
 - `tdd-cycle`: 軽量 skill。詳細は少数ファイルに分割する
 - `multi-agent-discussion`: 軽量 skill。実行パターンと例を持つ
@@ -159,7 +161,7 @@ docs/
 `mcp__claude_ai_...`、`browser_*` のような実装固有名は、core の workflow からは外す。
 必要な場合は以下のような抽象表現へ置き換える。
 
-- Jira 作成ツール
+- GitHub Issue 作成ツール
 - ブラウザ自動操作ツール
 - 設計モック参照ツール
 - GitHub PR コメント取得ツール
@@ -186,7 +188,7 @@ docs/
 統合方針は以下とする。
 
 - `review-branch` と `review-pr-comments` は `review/` に統合
-- 旧チケット作成 skill は `product-intent/` に再編
+- 旧Issue 作成 skill は `product-intent/` に再編
 - `ui-migration-*` は `ui-migration/` に統合
 
 単一責務だが複雑性の低い skill は、ディレクトリ化してもファイル数を増やしすぎない。
@@ -266,16 +268,16 @@ wrapper に workflow 本文を重複記載しない。
 ### `product-intent/`
 
 `SKILL.md`
-- Product Intent 整理と Jira チケット化 skill の入口
+- Product Intent 整理と GitHub Issue化 skill の入口
 
 `workflow.md`
 - ヒアリング、品質チェック、確認ループ、作成確認までの流れ
 
 `checklist.md`
-- Product Intent とチケット品質のチェック
+- Product Intent とIssue品質のチェック
 
 `examples.md`
-- ヒアリング、不足確認、チケット本文の例
+- ヒアリング、不足確認、Issue本文の例
 
 ### `ui-migration/`
 

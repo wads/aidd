@@ -1,6 +1,7 @@
 ---
 name: workspace-hygiene
 description: 作業開始前のワークツリー整理と topic branch 作成を行う skill。実装や調査を始める前に、未コミット差分を `git commit`、`git stash`、または承認済み削除で解消し、差分がない状態で topic branch を切ってから着手するときに使う。
+user-invocable: true
 ---
 
 # Workspace Hygiene

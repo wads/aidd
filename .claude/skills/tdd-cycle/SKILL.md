@@ -1,6 +1,7 @@
 ---
 name: tdd-cycle
 description: TDD サイクルを回す skill。実装する振る舞いを TODO リストに分解し、失敗するテストの確認（Red）、最小実装（Green）、重複除去（Refactor）を繰り返して進める。テストの出所を AC・設計書に固定することで、テストが実装と独立であることを保証し、ゲート 1（テスト green）の信頼性を支える。
+user-invocable: true
 ---
 
 # TDD Cycle

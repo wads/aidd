@@ -1,6 +1,7 @@
 ---
 name: implementation-plan
 description: P5 実装計画を行う skill。確定済みの要求・設計をもとに、実装順序・変更範囲・検証方針を Execution Intent として draft PR の説明文にまとめ、人間の承認を得てから実装（P6）へ進むときに使う。
+user-invocable: true
 ---
 
 # Implementation Plan

@@ -21,9 +21,11 @@
 ## 5. ADR の記録
 
 - `shared/templates/adr-template.md` に従って書く。1 ページ以内を目安にし、仕様の本文ではなく判断の理由を残す
-- ファイル名: `docs/adr/{連番}-{チケット番号}-short-title.md`（連番は 5 桁 0 埋め、`docs/adr/` 内で独立。チケットに紐づかない場合はチケット番号部分を省略）
+- frontmatter（`type: adr` / `scope` / `status` / `updated`）を必ず付与する
+- ファイル名: `{records_root}/adr/{連番}-short-title.md`（連番は 4 桁 0 埋め、ADR ディレクトリ内で独立）。Binding に `service` がある場合、サービス固有判断は `{records_root}/services/{service}/adr/`、複数サービス横断は `{records_root}/system/adr/` に置く
+- 対象 Issue 番号は frontmatter またはコメントで紐づける（ファイル名には含めない）
 - 既存 ADR の判断を置き換える場合は、旧 ADR を書き換えず、新 ADR に「Replaces: {旧 ADR}」とステータス変更を記録する
-- Jira チケットへリンクをコメントする
+- 対象の GitHub Issue へリンクをコメントする
 
 ## PR 作成時の連携
 

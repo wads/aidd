@@ -1,3 +1,10 @@
+---
+type: adr
+scope: [対象サービス、または system / all]
+status: proposed | accepted | superseded
+updated: YYYY-MM-DD
+---
+
 # [ADR-NNNN] [タイトル]
 
 ## ステータス

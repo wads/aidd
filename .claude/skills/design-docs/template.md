@@ -1,11 +1,11 @@
 # 設計書テンプレート
 
-ファイル名: `docs/design/{連番}-{チケット番号}-short-title.md`（例: `00007-ECS-12345-saved-search.md`）
+ファイル名: `{records_root}/design/{連番}-short-title.md`（例: `0007-saved-search.md`。連番 4 桁 0 埋め、service/system 分割は Binding に従う）
 
 ```md
 # 設計: {タイトル}
 
-- チケット: {チケット番号}
+- Issue: {Issue 番号}
 - 関連 ADR: {リンク。なければ「なし」}
 - Replaces: {置き換える旧設計書。なければ「なし」}
 

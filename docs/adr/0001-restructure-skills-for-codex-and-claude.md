@@ -1,5 +1,7 @@
 # [ADR-0001] Claude Code と Codex 向けに skill 配置を `.agents/skills/` へ再編する
 
+> **注（aidd テンプレート）**: この ADR は出典 playbook の歴史的経緯として残している。本テンプレートでは skill 配置を `.claude/skills/`（Claude Code ネイティブ）に集約しており、`.agents/skills/` 配置という結論は [ADR-0002](0002-adapt-as-aidd-template.md) が置き換える。
+
 ## Title
 
 Claude Code と Codex 向けに skill 配置を `.agents/skills/` へ再編する
@@ -89,7 +91,7 @@ Proposed
 
 - repo 内の skill 呼び出し単位が `skills/*.md` から `.agents/skills/<name>/SKILL.md` に変わる
 - `review-branch` と `review-pr-comments` は `review` に統合される可能性がある
-- 旧チケット作成 skill は `product-intent` など、役割に沿った skill 名に再編される可能性がある
+- 旧Issue 作成 skill は `product-intent` など、役割に沿った skill 名に再編される可能性がある
 
 ### 運用
 
