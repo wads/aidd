@@ -83,13 +83,13 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 | `requirements` | P2 要求整理 | 受入れ条件・品質条件を ID・信頼性マーカー・検証手段タグ付きで確定する |
 | `ui-prototyping` | P2.5 | UI の試作と PdM とのすり合わせ、実装ハンドオフ文書の生成（UI 変更時のみ） |
 | `adr` | P3 技術判断 | 技術判断を ADR としてイミュータブルに記録する（判断駆動） |
+| `multi-agent-discussion` | P3 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
 | `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
 | `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
 | `tdd-cycle` | P6 実装 | TDD サイクルで実装し、テストを AC-ID に対応付ける |
 | `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定 |
 | `context-snapshot` | P7 | Issue の意図と検証状態を HTML スナップショットに生成する |
 | `retrospective` | P8 振り返り | KPT 形式で振り返り、playbook 改善へつなげる |
-| `multi-agent-discussion` | P3 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
 
 ### 開発プロセス外の skill
 
