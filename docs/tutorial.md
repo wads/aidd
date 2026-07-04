@@ -47,7 +47,7 @@ Claude Code を起動した後の具体的な進め方を、ステップバイ�
 
 ## Step 3: TDD で実装（P6）
 
-`tdd-cycle` skill が Red → Green → Refactor を繰り返し、各テストを AC-ID に対応付けます。
+`tdd-cycle` skill が Red → Green → Refactor を繰り返し、受入れ条件とテストを PR の対応表で結びます（実装完了時に表を実在するテストと突き合わせます）。
 
 **あなたがやること:**
 - 確認ポイントで結果を確認して次に進む
