@@ -36,7 +36,7 @@ TDD はテスト技法ではなく、振る舞いを先に確定させる設計�
 ## 4. 繰り返しと commit / push
 
 - TODO リストの次の 1 行を選んで繰り返す
-- **draft PR の担保**: P6 開始時に対象 Issue の draft PR が無ければ、最初のサイクルに入る前に作成する（feature / refactoring は P5 で既に存在。P5 を実施しない chore はここで初めて作られる）
+- **draft PR の担保**: P6 開始時に対象 Issue の draft PR が無ければ、最初のサイクルに入る前に作成する（feature / refactoring は P5 で既に存在。P5 を実施しない chore はここで初めて作られる）。spike は対象外 — コードはマージしない前提であり、成果は Issue への報告で残す
 - **commit**: サイクル内で刻む。Green 到達時に 1 commit、Refactor で構造を変えたらもう 1 commit（人間が commit タイミングを判断する場合はそれに従う）
 - **push**: 1 サイクル完了時（Refactor 後・green 状態）に draft PR へ push する。Red→Green の途中（重複を含む仮実装や三角測量の途上）では push しない — 観察窓のノイズと CI 実行コストを増やさないため
 
