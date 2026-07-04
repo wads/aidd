@@ -16,4 +16,5 @@ Issue の `type-*` ラベルから実施フェーズを決める。詳細な契�
 
 - hotfix は bugfix の緊急変形: P6・P7 の最小構成で先に直し、事後に P8 と記録（Intent Delta、必要なら ADR）を必須にする。Issue の事後作成を許容する
 - 「判断駆動」= フェーズには入るが、成果物（ADR・設計書）は書くべき判断が生じたときだけ作る
+- draft PR は通常 P5（implementation-plan）で作成するが、P5 を実施しない chore では `tdd-cycle` が P6 開始時に作成する（`tdd-cycle/workflow.md` §4）
 - タイプが混在するIssue は分割を提案する。分割できなければ feature のルートに乗せる
