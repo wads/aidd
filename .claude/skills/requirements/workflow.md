@@ -39,7 +39,7 @@ Issue の受入れ条件を 1 件ずつ検査する。
 
 ## 6. 確定と記録
 
-人間の承認を得たら、`output-format.md` の形式で GitHub Issueへコメントする（Issue本文は書き換えない。Intent Delta として追記する）。
+承認を求める際は、AI の見解（推奨する確定内容・対象外にした項目とその理由・残る懸念）を先に提示する（`common.md` の出力契約）。人間の承認を得たら、`output-format.md` の形式で GitHub Issueへコメントする（Issue本文は書き換えない。Intent Delta として追記する）。
 
 ## 注意事項
 
