@@ -86,8 +86,8 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 | `multi-agent-discussion` | P3 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
 | `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
 | `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
-| `tdd-cycle` | P6 実装 | TDD サイクルで実装し、テストを AC-ID に対応付ける |
-| `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定 |
+| `tdd-cycle` | P6 実装 | TDD サイクルで実装し、受入れ条件とテストを PR の対応表で結ぶ（P6 完了時に実績と突き合わせ） |
+| `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定、発見のトリアージ |
 | `context-snapshot` | P7 | Issue の意図と検証状態を HTML スナップショットに生成する |
 | `retrospective` | P8 振り返り | KPT 形式で振り返り、playbook 改善へつなげる |
 
