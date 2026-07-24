@@ -61,6 +61,7 @@
 - `implementation-plan`（P5 実装計画）
 - `tdd-cycle`（P6 実装）
 - `review`（P7 検証・レビュー）
+- `critical-gate`（人間レビュー前の批判的チェック。P7 必須・P2/P5 軽量版）
 - `context-snapshot`（P7 スナップショット）
 - `retrospective`（P8 振り返り）
 - `multi-agent-discussion`
