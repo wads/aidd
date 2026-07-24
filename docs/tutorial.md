@@ -55,10 +55,10 @@ Claude Code を起動した後の具体的な進め方を、ステップバイ�
 
 ## Step 4: 検証・レビューとマージ（P7）
 
-`review` skill が self-review と AC ごとの受入れ検証を行い、`context-snapshot` がIssue の意図と検証状態を 1 枚の HTML にまとめて Issue に添付します。
+まず `critical-gate` skill が独立視点の批判的レビューを行い、Critical 指摘を戻り先フェーズへ差し戻して解消します。通過後、`review` skill が self-review と AC ごとの受入れ検証を行い、`context-snapshot` がIssue の意図と検証状態を 1 枚の HTML にまとめてワークスペースに生成します（要点は Issue コメントに残ります）。
 
 **あなたがやること:**
-- スナップショットと PR を見て受入れを判断する
+- ゲート通過後のスナップショットと PR を見て受入れを判断する
 - 短期コンテキストの昇格提案（ADR・設計書へ残すべき判断）を承認する
 - マージする
 
@@ -68,7 +68,7 @@ Claude Code を起動した後の具体的な進め方を、ステップバイ�
 > /retrospective
 ```
 
-KPT で振り返り、playbook への改善提案が出ます。採用したものはこの playbook への PR になります。
+AI の観察とあなたの Keep / Problem を対話で突き合わせ、合意した Try が playbook への改善提案になります。採用したものはこの playbook への PR になります。
 
 ## 技術的な議論が必要なとき
 

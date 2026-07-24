@@ -87,9 +87,10 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 | `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
 | `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
 | `tdd-cycle` | P6 実装 | TDD サイクルで実装し、受入れ条件とテストを PR の対応表で結ぶ（P6 完了時に実績と突き合わせ） |
+| `critical-gate` | P7 必須（P2/P5 軽量版） | 人間レビュー前の批判的チェックゲート。独立視点の agent が否定前提でレビューし、指摘の戻り先を判定して通過まで差し戻す |
 | `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定、発見のトリアージ |
-| `context-snapshot` | P7 | Issue の意図と検証状態を HTML スナップショットに生成する |
-| `retrospective` | P8 振り返り | KPT 形式で振り返り、playbook 改善へつなげる |
+| `context-snapshot` | P7 | Issue の意図と検証状態を HTML スナップショットに生成する（ワークスペースに使い捨て保存） |
+| `retrospective` | P8 振り返り | KPT を人間との対話で作り、合意した Try を playbook 改善へつなげる |
 
 ### 開発プロセス外の skill
 
