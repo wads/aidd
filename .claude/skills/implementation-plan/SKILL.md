@@ -1,6 +1,6 @@
 ---
 name: implementation-plan
-description: P5 実装計画を行う skill。確定済みの要求・設計をもとに、実装順序・変更範囲・検証方針を Execution Intent として draft PR の説明文にまとめ、人間の承認を得てから実装（P6）へ進むときに使う。
+description: P5 実装計画を行う skill。確定済みの要求・設計をもとに、実装順序・変更範囲・検証方針を Execution Intent として draft PR の説明文にまとめ、人間の承認を得てから実装（P6 実装）へ進むときに使う。
 user-invocable: true
 ---
 
@@ -13,9 +13,9 @@ user-invocable: true
 
 ## 入力
 
-- 確定版の受入れ条件・品質条件（P2、AC/QC ID）
+- 確定版の受入れ条件・品質条件（P2 要求整理、AC/QC ID）
 - 設計書・ADR（あれば）
-- P2.5 を実施した場合は `IMPLEMENTATION_PROMPT.md`
+- P2.5 プロトタイピングを実施した場合は `IMPLEMENTATION_PROMPT.md`
 
 ## 出力
 

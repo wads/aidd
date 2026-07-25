@@ -81,22 +81,22 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 | `product-intent` | 入口 | 要求をタイプ付きの GitHub Issueへ整える（`type-*` ラベル必須） |
 | `dev` | P1 着手 | `type-*` ラベルからルートを特定し、各フェーズ skill へ振り分ける |
 | `requirements` | P2 要求整理 | 受入れ条件・品質条件を ID・信頼性マーカー・検証手段タグ付きで確定する |
-| `ui-prototyping` | P2.5 | UI の試作と PdM とのすり合わせ、実装ハンドオフ文書の生成（UI 変更時のみ） |
+| `ui-prototyping` | P2.5 プロトタイピング | UI の試作と PdM とのすり合わせ、実装ハンドオフ文書の生成（UI 変更時のみ） |
 | `adr` | P3 技術判断 | 技術判断を ADR としてイミュータブルに記録する（判断駆動） |
-| `multi-agent-discussion` | P3 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
+| `multi-agent-discussion` | P3 技術判断 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
 | `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
 | `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
-| `tdd-cycle` | P6 実装 | TDD サイクルで実装し、受入れ条件とテストを PR の対応表で結ぶ（P6 完了時に実績と突き合わせ） |
-| `critical-gate` | P7 必須（P2/P5 軽量版） | 人間レビュー前の批判的チェックゲート。独立視点の agent が否定前提でレビューし、指摘の戻り先を判定して通過まで差し戻す |
+| `tdd-cycle` | P6 実装 | TDD サイクルで実装し、受入れ条件とテストを PR の対応表で結ぶ（P6 実装の完了時に実績と突き合わせ） |
+| `critical-gate` | P7 検証・レビュー 必須（P2/P5 軽量版） | 人間レビュー前の批判的チェックゲート。独立視点の agent が否定前提でレビューし、指摘の戻り先を判定して通過まで差し戻す |
 | `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定、発見のトリアージ |
-| `context-snapshot` | P7 | Issue の意図と検証状態を HTML スナップショットに生成する（ワークスペースに使い捨て保存） |
+| `context-snapshot` | P7 検証・レビュー | Issue の意図と検証状態を HTML スナップショットに生成する（ワークスペースに使い捨て保存） |
 | `retrospective` | P8 振り返り | KPT を人間との対話で作り、合意した Try を playbook 改善へつなげる |
 
 ### 開発プロセス外の skill
 
 | skill | 概要 |
 |---|---|
-| `workspace-hygiene` | 作業開始前の差分整理と topic branch 作成（P1 で利用） |
+| `workspace-hygiene` | 作業開始前の差分整理と topic branch 作成（P1 着手で利用） |
 
 ## 設計メモ
 
@@ -111,4 +111,4 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 - skill は `.claude/skills/<name>/SKILL.md` に追加する（source of truth、`user-invocable: true`）
 - 共通ルール・Binding 規約は `shared/rules/` に追加する
 - 記録の置き場所はプロジェクトの `CLAUDE.md` の AIDD Binding で宣言し、全フェーズで一貫させる（フェーズごとに規約を混在させない）
-- playbook 自体の改善は、各プロジェクトの振り返り（P8）からこのリポジトリへの PR として還流する
+- playbook 自体の改善は、各プロジェクトの振り返り（P8 振り返り）からこのリポジトリへの PR として還流する
