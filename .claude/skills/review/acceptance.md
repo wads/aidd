@@ -4,7 +4,7 @@
 
 ## 0. 批判的レビューゲート（必須）
 
-人間のレビューへ入る前に `critical-gate`（フル版）を実行し、通過させる。Critical 指摘は戻り先フェーズへ差し戻して解消してから以降のステップへ進む（詳細は `critical-gate/workflow.md`）。ゲートの指摘一覧と判定は PR コメントに記録する。
+人間のレビューへ入る前に `critical-gate` を実行し、通過させる。深さは Issue タイプで決まる（feature / refactoring はフル版、bugfix は軽量版、chore は契約チェックのみ、hotfix は事後実行を許容 — `critical-gate/workflow.md` §0.5）。Critical 指摘は戻り先フェーズへ差し戻して解消してから以降のステップへ進む。ゲートの指摘一覧と判定は PR コメントに記録する。
 
 ## 1. 受入れ検証
 

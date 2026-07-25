@@ -25,7 +25,7 @@
 
 ## 4. 承認と記録
 
-- 承認を求める前に、`critical-gate` の軽量版（設計 + 仕様適合の視点）を通すことを推奨する
+- 承認を求める前に、`critical-gate` の軽量版（設計 + 仕様適合の視点）を通すことを推奨する（feature / refactoring。他タイプは任意 — `critical-gate/workflow.md` §0.5）
 - AI の見解（推奨する刻み方・棄却した代替案とその理由・残る懸念）を先に提示し、人間の承認を得る（`common.md` の出力契約）
 - draft PR を作成し、説明文に計画を書く（branch 名は `feature/issue-{Issue番号}-short-desc`、PR タイトルは `{Issue 番号}: 要約`）
 - ブランチにコミットが無いと GitHub 上で PR を作成できない。その場合は空コミット（`chore: Issue #{n} 着手`）を作ってから draft PR を作成する
