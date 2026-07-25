@@ -14,7 +14,7 @@ user-invocable: true
 
 ## 入力
 
-- GitHub Issueの Product Intent と受入れ条件（P2 の暫定版でよい）。Issue前の素の `request` も受け付ける
+- GitHub Issueの Product Intent と受入れ条件（P2 要求整理の暫定版でよい）。Issue前の素の `request` も受け付ける
 - `project-config.md`
 - 参考資料（任意）
 

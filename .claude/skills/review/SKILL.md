@@ -15,9 +15,9 @@ user-invocable: true
 
 ## 入力
 
-- review target: `branch`、`pr-comments` または `acceptance`（P7）
+- review target: `branch`、`pr-comments` または `acceptance`（P7 検証・レビュー）
 - オプション: `staged`, `file:<path>`, `quick`, `PR番号`
-- `acceptance` の場合: P2 の確定版 AC/QC（Issue コメント）
+- `acceptance` の場合: P2 要求整理の確定版 AC/QC（Issue コメント）
 
 ## 出力
 
@@ -32,6 +32,6 @@ user-invocable: true
 
 - `branch.md`
 - `pr-comments.md`
-- `acceptance.md`（P7 のとき）
+- `acceptance.md`（P7 検証・レビューのとき）
 - `checklist.md`
 - `output-format.md`
