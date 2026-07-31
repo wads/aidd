@@ -11,9 +11,12 @@ Issue の `type-*` ラベルから実施フェーズを決める。詳細な契�
 | P4 設計（design-docs） | 判断駆動 | − | 判断駆動 | − | − |
 | P5 実装計画（implementation-plan） | ✓ | 簡易（PR 説明 1 段落） | ✓ | − | − |
 | P6 実装（tdd-cycle） | ✓ | ✓（再現テスト先行） | ✓（既存テスト green 維持） | ✓ | 使い捨てコード可（マージしない） |
+| P7 批判的ゲート（critical-gate、人間レビュー前） | フル版（4視点） | 軽量版（2視点） | フル版（4視点） | 契約チェックのみ | 対象外 |
 | P7 検証・レビュー（review + context-snapshot） | ✓ | ✓ | ✓ | 簡易 | 報告のレビュー |
 | P8 振り返り（retrospective） | 推奨 | 任意 | 任意 | − | 必須 |
 
+- `critical-gate` は P2 要求整理の確定前・P5 承認前にも軽量版を挟む（feature / refactoring は推奨、bugfix / spike は任意、chore / hotfix は実施しない）。深さの定義は `critical-gate/workflow.md` §0・§0.5 を正とする
+- **ルート提示には `critical-gate` の行も含める**。表に無いゲートは合意された計画に入らず、そのまま実行されずに終わる
 - hotfix は bugfix の緊急変形: P6・P7 の最小構成で先に直し、事後に P8 振り返りと記録（Intent Delta、必要なら ADR）を必須にする。Issue の事後作成を許容する
 - 「判断駆動」= フェーズには入るが、成果物（ADR・設計書）は書くべき判断が生じたときだけ作る
 - draft PR は通常 P5 実装計画（implementation-plan）で作成するが、P5 実装計画を実施しない chore では `tdd-cycle` が P6 実装の開始時に作成する（`tdd-cycle/workflow.md` §4）
