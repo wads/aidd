@@ -105,7 +105,7 @@ Intent は上書きしない。ある時点の Intent は、その時点の判�
 
 `NNNN` は 0 埋めの連番とする。日付で並べる必要がある場合は `YYYYMMDD-short-title.md` を使う。
 
-新しい判断が古い判断を置き換える場合は、古い文書を修正せず、新しい文書側に以下を記録する。
+新しい判断が古い判断を置き換える場合は、古い文書の本文を修正せず、新しい文書側に以下を記録する。古い文書には frontmatter の `status` と逆リンク（`superseded_by` / `amended_by`）だけを追記する（ADR-0003）。
 
 - どの Intent / ADR / 設計書を置き換えるのか
 - 何が変わったのか
@@ -334,3 +334,4 @@ Product Intent skill の品質チェックでは、少なくとも以下を見�
 ## 参考
 
 - [仕様駆動開発(SDD)から、意図駆動開発(IDD)へ](https://zenn.dev/yamaken0107/articles/2b3d2a0b059aa0)
+- 2026-09-04: ADR の置き換え関係の正を本文の「Replaces」から frontmatter の双方向リンク（`supersedes` / `superseded_by` / `amends` / `amended_by`）へ変更し、判断領域タグ `topic` と生成索引 `INDEX.md` を導入する（ADR-0003）。
