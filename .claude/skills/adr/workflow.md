@@ -4,6 +4,9 @@
 
 何を決めるのか、なぜ今決める必要があるのかを 1〜2 行で確認する。判断に選択の余地がない（既知のパターンの適用のみ）なら ADR は作らない。
 
+- **同 topic の既存 ADR を読む**: ADR ディレクトリの `INDEX.md` から該当 topic の有効 ADR を引いて読み、この判断がそれらと「置き換え / 補足 / 無関係」のどれに当たるかを宣言する。既存の決定を変えるのに置き換え・補足を宣言しない ADR は、衝突を後から検知できない最大の経路である
+- 語彙表（`README.md`）に合う topic が無ければ、この ADR と同じコミットで語彙表へ追加する
+
 ## 2. 選択肢の整理
 
 - 現実的な選択肢を 2〜4 案に整理し、各案の概要・メリット・デメリットをまとめる
@@ -27,7 +30,8 @@
 - frontmatter（`type: adr` / `scope` / `status` / `updated`）を必ず付与する
 - ファイル名: `{records_root}/adr/{連番}-short-title.md`（連番は 4 桁 0 埋め、ADR ディレクトリ内で独立）。Binding に `service` がある場合、サービス固有判断は `{records_root}/services/{service}/adr/`、複数サービス横断は `{records_root}/system/adr/` に置く
 - 対象 Issue 番号は frontmatter またはコメントで紐づける（ファイル名には含めない）
-- 既存 ADR の判断を置き換える場合は、旧 ADR を書き換えず、新 ADR に「Replaces: {旧 ADR}」とステータス変更を記録する
+- 既存 ADR の判断を置き換える場合は、新 ADR の frontmatter に `supersedes: [旧番号]` を書き、旧 ADR の frontmatter に `superseded_by: [新番号]` と `status: superseded` を追記する。補足の場合は `amends` / `amended_by` を同様に双方向で書く。旧 ADR への編集はこの frontmatter 変更のみで、本文には触れない
+- 記録後に `python3 shared/scripts/adr_index.py {adr_dir}` を実行して `INDEX.md` を再生成し、照合の指摘（語彙表に無い topic・片方向リンク）が無いことを確認する
 - 対象の GitHub Issue へリンクをコメントする
 
 ### 着手前に判断が固まった場合（`proposed` で起こす）
