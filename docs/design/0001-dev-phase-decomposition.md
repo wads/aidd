@@ -48,7 +48,7 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 | 成果物 | Intent | 置き場所 |
 |---|---|---|
-| ADR | Decision Intent | `docs/adr/{連番}-short-title.md`（例: `0042-cache-strategy.md`。Issue 番号は frontmatter で紐づける） |
+| ADR | Decision Intent | `docs/adr/{連番}-short-title.md`（例: `0042-cache-strategy.md`。Issue 番号は frontmatter またはIssue コメントで紐づける。`adr/workflow.md`） |
 | 設計書 | Design Intent | `docs/design/{連番}-short-title.md` |
 | テストコード | Verification Intent | テストディレクトリ（コードとして永続） |
 
@@ -79,7 +79,7 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 索引は GitHub Issue が担うため、全成果物に Issue 番号（`#{番号}` 形式。`#123`、`#11`、`#4356` など）を機械的に埋め込む。本規約の例では `#123` を使うが、特定のリポジトリ・プロジェクトには依存しない。Issue を別リポジトリ（コンテキストハブ）へ集約する場合は Binding の `issue_repo` を起点に参照する。
 
-- ADR のファイル名: `{連番}-short-title.md`（例: `0042-cache-strategy.md`）。連番は 4 桁 0 埋めで ADR ディレクトリ内で独立。Issue 番号は frontmatter またはコメントで紐づけ、ファイル名には含めない（`adr/workflow.md`）。設計書は `design-docs` skill の規約に従う
+- ADR のファイル名: `{連番}-short-title.md`（例: `0042-cache-strategy.md`）。連番は 4 桁 0 埋めで ADR ディレクトリ内で独立。Issue 番号は frontmatter またはIssue コメントで紐づけ、ファイル名には含めない（`adr/workflow.md`）。設計書は `design-docs` skill の規約に従う
 - 同一Issue から複数の ADR が出る場合は連番と short-title で区別する
 - short-title は小文字ケバブケースとする
 - 並行ブランチで連番が衝突した場合は、後にマージする側がリネームする（P7 検証・レビューのチェック項目に連番重複の検出を含める）

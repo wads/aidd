@@ -37,6 +37,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 records_root: docs/                 # 既定。コンテキストハブ利用時は例: ../remosys-context/contexts
 issue_repo:   <owner>/<repo>        # 既定は自 repo
 service:      <service-name>        # ハブでサービス別に分ける場合のみ
+aidd_root:    ../aidd
 
 ## Project Configuration
 - Test command: `npm test`

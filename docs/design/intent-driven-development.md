@@ -330,7 +330,7 @@ Product Intent skill の品質チェックでは、少なくとも以下を見�
 - 2026-06-12: `dev` skill の Lite / Standard / Full（規模ベースの mode）を廃止し、Issueタイプ別ルート（feature / bugfix / hotfix / refactoring / chore / spike、GitHub ラベル `type-*` で管理）へ置き換える。フェーズ構成・各 skill の Intent 入出力契約は 0001-dev-phase-decomposition.md に定義する。
   理由: フェーズの形は規模ではなくタイプで決まり、タイプはIssue 作成時に機械的に確定できるため。
   影響: 本文書「skill 改修への反映方針」の表は、0001 の skill 分解案を最新として読む。
-- 2026-09-04: ADR の置き換え関係の正を本文の「Replaces」から frontmatter の双方向リンク（`supersedes` / `superseded_by` / `amends` / `amended_by`）へ変更し、判断領域タグ `topic` と生成索引 `INDEX.md` を導入する。ADR のファイル名は `{連番}-short-title.md`（4 桁 0 埋め）とし、Issue 番号は frontmatter で紐づける（ADR-0003）。
+- 2026-09-04: ADR の置き換え関係の正を本文の「Replaces」から frontmatter の双方向リンク（`supersedes` / `superseded_by` / `amends` / `amended_by`）へ変更し、判断領域タグ `topic` と生成索引 `INDEX.md` を導入する。ADR のファイル名は `{連番}-short-title.md`（4 桁 0 埋め）とし、Issue 番号は frontmatter またはIssue コメントで紐づける（ADR-0003）。
   理由: 本数が増えたときに有効な決定を判断領域で引けず、置き換えが片方向で失効を辿れなかったため。
   影響: 上記 2026-06-12 の命名・Replaces の Delta は、ADR については本 Delta で読み替える。設計書は Replaces 表記のまま。
 

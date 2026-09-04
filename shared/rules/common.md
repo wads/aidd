@@ -40,7 +40,7 @@
 - `records_root`: 長期記録のルート。既定 `docs/`。コンテキストハブがある場合はそのパス（例 `../remosys-context/contexts`）
 - `issue_repo`: Issue を集約する GitHub リポジトリ。既定は対象 repo 自身（例 `owner/remosys-context`）
 - `service`: ハブ内でサービス別に分ける場合のサービス名（例 `remosys-frontend`）。単一 repo では省略可
-- `aidd_root`: aidd テンプレート（skill・rule・スクリプト）の配置先。既定は自 repo ルート。symlink や別ディレクトリで取り込む場合はそのパス（例 `../aidd`）。規約中のコマンド例はこの値で解決する
+- `aidd_root`: aidd テンプレート（skill・rule・スクリプト）の配置先。自 repo から `{aidd_root}/shared/scripts/...` が解決できるパスを書く。既定は自 repo ルート（`.`。`shared/` を symlink で取り込んでいる場合もこれでよい）。別ディレクトリを直接参照する場合はそのパス（例 `../aidd`）
 
 記録の配置（records_root 起点）:
 
