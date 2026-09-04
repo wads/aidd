@@ -61,7 +61,7 @@ Issue のタイプ（`product-intent` で確定し `type-*` ラベルで管理�
 
 - **AI**: 選択肢・推奨案・トレードオフ・捨てる案を提示する。迷う場合は止めて相談する
 - **あなた**: 何を優先し何を捨てるかを判断する（名前は「技術」だが、方針の決定は PdM が最も強い領域。担当外と考えず関与してよい）
-- **見るもの**: `docs/adr/` に追加される ADR
+- **見るもの**: `docs/adr/` に追加される ADR。有効な ADR の一覧は `docs/adr/INDEX.md`、topic の意味は `docs/adr/README.md`
 
 ### P4 設計（design-docs、判断があるときだけ）
 
@@ -111,8 +111,8 @@ Issue のタイプ（`product-intent` で確定し `type-*` ラベルで管理�
 | 何を作るか・なぜ | GitHub Issue本文（Product Intent） |
 | 確定した受入れ条件・品質条件 | Issue コメント（P2 要求整理の確定版） |
 | 途中での方針変更 | Issue コメントの Intent Delta |
-| 技術判断の理由・捨てた案 | `docs/adr/{連番}-{Issue 番号}-*.md` |
-| 設計・守るべき振る舞い | `docs/design/{連番}-{Issue 番号}-*.md` |
+| 技術判断の理由・捨てた案 | `docs/adr/{連番}-*.md`（有効な一覧は `docs/adr/INDEX.md`） |
+| 設計・守るべき振る舞い | `docs/design/{連番}-*.md` |
 | 実装方針・テスト対応 | PR の説明文 |
 | 検証結果 | PR コメント |
 | 今の全体像（1 枚） | コンテキストスナップショット（HTML、ワークスペースの使い捨てディレクトリ。要点は Issue コメント） |

@@ -48,8 +48,8 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 | 成果物 | Intent | 置き場所 |
 |---|---|---|
-| ADR | Decision Intent | `docs/adr/{連番}-{Issue 番号}-short-title.md`（例: `00042-#123-cache-strategy.md`） |
-| 設計書 | Design Intent | `docs/design/{連番}-{Issue 番号}-short-title.md` |
+| ADR | Decision Intent | `docs/adr/{連番}-short-title.md`（例: `0042-cache-strategy.md`。Issue 番号は frontmatter またはIssue コメントで紐づける。`adr/workflow.md`） |
+| 設計書 | Design Intent | `docs/design/{連番}-short-title.md` |
 | テストコード | Verification Intent | テストディレクトリ（コードとして永続） |
 
 ### 短期層（PR / GitHub Issue、使い捨て）
@@ -79,16 +79,15 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 索引は GitHub Issue が担うため、全成果物に Issue 番号（`#{番号}` 形式。`#123`、`#11`、`#4356` など）を機械的に埋め込む。本規約の例では `#123` を使うが、特定のリポジトリ・プロジェクトには依存しない。Issue を別リポジトリ（コンテキストハブ）へ集約する場合は Binding の `issue_repo` を起点に参照する。
 
-- ADR・設計書のファイル名: `{連番}-{Issue 番号}-short-title.md`（例: `00042-#123-cache-strategy.md`）。連番は 5 桁 0 埋めで、`docs/adr/` と `docs/design/` それぞれ独立に増やす
+- ADR のファイル名: `{連番}-short-title.md`（例: `0042-cache-strategy.md`）。連番は 4 桁 0 埋めで ADR ディレクトリ内で独立。Issue 番号は frontmatter またはIssue コメントで紐づけ、ファイル名には含めない（`adr/workflow.md`）。設計書は `design-docs` skill の規約に従う
 - 同一Issue から複数の ADR が出る場合は連番と short-title で区別する
-- short-title は小文字ケバブケースとする（大文字のIssue 番号部分と機械的に区別できるようにするため）
-- Issue に紐づかない文書（横断的な技術判断など）はIssue 番号部分を省略する（例: `00043-introduce-feature-flags.md`）
+- short-title は小文字ケバブケースとする
 - 並行ブランチで連番が衝突した場合は、後にマージする側がリネームする（P7 検証・レビューのチェック項目に連番重複の検出を含める）
 - branch 名: `feat/#123-short-desc`
 - PR タイトル: `#123: 変更の要約`
 - Issue には ADR・設計書へのリンクをコメントで貼る
 
-連番はディレクトリ内の並び順（読む順序のヒント）のためのもの。文書の新旧・置き換え関係の正は、置き換える側の文書に明記する「Replaces: {旧文書}」とする。
+連番はディレクトリ内の並び順（読む順序のヒント）のためのもの。ADR の新旧・置き換え関係の正は frontmatter の関係リンク（`supersedes` / `superseded_by`、補足は `amends` / `amended_by`。必ず双方向）とし、有効な ADR の一覧は ADR ディレクトリの `INDEX.md`（生成物）で引く（ADR-0003）。設計書の置き換えは `design-docs` skill の「Replaces」表記に従う。
 
 ### PR 説明の必須セクション
 
@@ -130,7 +129,7 @@ P3 技術判断と P4 設計は反復可能とする（設計の途中で新し�
 |---|---|
 | 受入れ条件が曖昧・矛盾、テストとして表現できない | P2 要求整理（プロダクト判断が必要なら `product-intent` の確認ループへ） |
 | 合意した UI・操作感が実現できない、または合意が崩れた | P2.5 プロトタイピング |
-| 技術選定の前提が崩れた | P3 技術判断（既存 ADR は書き換えず、置き換える ADR を追加） |
+| 技術選定の前提が崩れた | P3 技術判断（既存 ADR の本文は書き換えず、置き換える ADR を追加して双方向リンクで結ぶ） |
 | 設計の責務分割・フローが成立しない | P4 設計 |
 | 実装順序・粒度だけの問題 | P5 実装計画 |
 
@@ -241,7 +240,7 @@ feature は現行の Product Intent テンプレートをそのまま使う。�
 - **人間**: 採用を判断する
 - **議論の中心**: トレードオフの重み付け（何を優先し何を捨てるか）
 - **exit**: 採用しなかった選択肢とその理由が ADR に書かれている
-- **残すコンテキスト**: ADR → `docs/adr/{連番}-{Issue 番号}-short-title.md`（イミュータブル。判断が変わったら新しい ADR で置き換える）
+- **残すコンテキスト**: ADR → `docs/adr/{連番}-short-title.md`（イミュータブル。判断が変わったら新しい ADR で置き換える）
 - **Intent**: Decision Intent
 
 ### P4 設計
@@ -251,7 +250,7 @@ feature は現行の Product Intent テンプレートをそのまま使う。�
 - **人間**: 設計を承認する
 - **議論の中心**: 責務の置き場所、既存設計との整合、例外ケースの扱い
 - **exit**: 受入れ条件の各項目について「設計のどこで満たされるか」を対応付けられる
-- **残すコンテキスト**: 設計書 → `docs/design/{連番}-{Issue 番号}-short-title.md`
+- **残すコンテキスト**: 設計書 → `docs/design/{連番}-short-title.md`
 - **Intent**: Design Intent
 
 ### P5 実装計画

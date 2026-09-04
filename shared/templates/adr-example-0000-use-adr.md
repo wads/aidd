@@ -1,3 +1,15 @@
+---
+type: adr
+scope: all
+status: accepted
+updated: 2026-03-05
+topic: [records]
+supersedes: []
+superseded_by: []
+amends: []
+amended_by: []
+---
+
 # [ADR-0000] Architecture Decision Records を採用する
 
 ## ステータス

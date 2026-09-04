@@ -60,6 +60,7 @@ PR 説明に以下の必須セクションをそろえる。該当がない場�
 - 「別 Issue でやる」「後で記録する」と宣言した項目が、宣言先（Issue・ADR 等）に実在するか
 - PR・Issue に書いた「確認済み・実施済み・green」等の事実主張に、対応する実行記録があるか（`common.md` の証拠つき報告）
 - PR 必須セクションがそろっているか（§4）
+- ADR を追加・変更した場合、`python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir} --check`（services 側は `--vocab {records_root}/system/adr/README.md` を付ける）が `ok`（INDEX.md が最新で、語彙表に無い topic・片方向リンク・status 不整合の error が無い）か。実行出力を PR に転記する。`skipped`（語彙表も INDEX.md も無い未移行ディレクトリ）は移行 Issue が open で実在することを確認して通過させる
 
 ## フェーズ間の戻り
 

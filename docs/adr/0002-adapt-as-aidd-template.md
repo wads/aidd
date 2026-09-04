@@ -2,7 +2,12 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-06-15
+updated: 2026-09-04
+topic: [records, tooling]
+supersedes: [0001]
+superseded_by: []
+amends: []
+amended_by: []
 ---
 
 # [ADR-0002] aidd 汎用テンプレートへの適応

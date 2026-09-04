@@ -105,7 +105,7 @@ Intent は上書きしない。ある時点の Intent は、その時点の判�
 
 `NNNN` は 0 埋めの連番とする。日付で並べる必要がある場合は `YYYYMMDD-short-title.md` を使う。
 
-新しい判断が古い判断を置き換える場合は、古い文書を修正せず、新しい文書側に以下を記録する。
+新しい判断が古い判断を置き換える場合は、古い文書の本文を修正せず、新しい文書側に以下を記録する。ADR の場合はさらに、古い ADR の frontmatter に `status` と逆リンク（`superseded_by` / `amended_by`）だけを追記する（ADR-0003。設計書は「Replaces」表記のまま）。
 
 - どの Intent / ADR / 設計書を置き換えるのか
 - 何が変わったのか
@@ -145,7 +145,7 @@ ADR は、重要な技術判断の意図をイミュータブルに残す。
 - 影響するIssue、設計書、実装
 
 ADR は仕様の本文ではなく、判断の理由を残す場所である。
-ADR-0001 の判断が後から変わった場合、ADR-0001 を書き換えない。ADR-0002 として「ADR-0001 を置き換える判断」を追加する。
+ADR-0001 の判断が後から変わった場合、ADR-0001 の本文を書き換えない。ADR-0002 として「ADR-0001 を置き換える判断」を追加し、ADR-0001 の frontmatter に `status: superseded` と `superseded_by` を書く。
 
 ### Design Doc: Design Intent
 
@@ -330,6 +330,9 @@ Product Intent skill の品質チェックでは、少なくとも以下を見�
 - 2026-06-12: `dev` skill の Lite / Standard / Full（規模ベースの mode）を廃止し、Issueタイプ別ルート（feature / bugfix / hotfix / refactoring / chore / spike、GitHub ラベル `type-*` で管理）へ置き換える。フェーズ構成・各 skill の Intent 入出力契約は 0001-dev-phase-decomposition.md に定義する。
   理由: フェーズの形は規模ではなくタイプで決まり、タイプはIssue 作成時に機械的に確定できるため。
   影響: 本文書「skill 改修への反映方針」の表は、0001 の skill 分解案を最新として読む。
+- 2026-09-04: ADR の置き換え関係の正を本文の「Replaces」から frontmatter の双方向リンク（`supersedes` / `superseded_by` / `amends` / `amended_by`）へ変更し、判断領域タグ `topic` と生成索引 `INDEX.md` を導入する。ADR のファイル名は `{連番}-short-title.md`（4 桁 0 埋め）とし、Issue 番号は frontmatter またはIssue コメントで紐づける（ADR-0003）。
+  理由: 本数が増えたときに有効な決定を判断領域で引けず、置き換えが片方向で失効を辿れなかったため。
+  影響: 上記 2026-06-12 の命名・Replaces の Delta は、ADR については本 Delta で読み替える。設計書は Replaces 表記のまま。
 
 ## 参考
 

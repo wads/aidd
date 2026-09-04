@@ -37,6 +37,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 records_root: docs/                 # 既定。コンテキストハブ利用時は例: ../remosys-context/contexts
 issue_repo:   <owner>/<repo>        # 既定は自 repo
 service:      <service-name>        # ハブでサービス別に分ける場合のみ
+aidd_root:    .                   # 既定は自 repo ルート。別ディレクトリを直接参照する場合は例: ../aidd
 
 ## Project Configuration
 - Test command: `npm test`
@@ -68,6 +69,7 @@ Codex を併用する場合は `AGENTS.md` から `shared/rules/common.md` と `
 | `.claude/skills/` | skill 本文の source of truth（Claude Code ネイティブ skill） |
 | `shared/rules/` | 共通ルール（Binding 規約を含む） |
 | `shared/templates/` | 汎用テンプレート |
+| `shared/scripts/` | 補助スクリプト（ADR 索引の生成・照合 `adr_index.py` とそのテスト） |
 | `docs/` | ADR、設計、チュートリアル、マニュアル |
 
 ## Skills
