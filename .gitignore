@@ -31,3 +31,6 @@ __pycache__/
 
 # Claude Code
 .claude/settings.local.json
+
+# context-snapshot の生成ビュー（使い捨て）
+.snapshots/

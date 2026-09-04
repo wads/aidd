@@ -211,6 +211,16 @@ class FrontmatterFormats(AdrIndexCase):
 
         self.assertEqual(result.errors, [])
         self.assertIn("ADR-0001", section(result.index, "platform"))
+        self.assertIn("ADR-0001", section(result.index, "records"))
+
+    def test_vocab_without_a_topic_table_is_an_error(self):
+        d = self.make_dir(vocab="# 語彙表\n\n| ファイル | 役割 |\n|---|---|\n| `INDEX.md` | 生成物 |\n")
+        self.write(d, "0001-a.md", adr("0001", "x"))
+
+        result = adr_index.run(d)
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("topic 表" in e for e in result.errors))
 
 
 class Validation(AdrIndexCase):
@@ -383,6 +393,15 @@ class UnmigratedDirectory(AdrIndexCase):
 
         self.assertFalse(result.skipped)
         self.assertTrue(any("INDEX.md" in e and "語彙表" in e for e in result.errors))
+
+    def test_nonexistent_adr_dir_is_an_error_not_a_skip(self):
+        d = self.make_dir(vocab=None)
+
+        code, out, err = self.main([os.path.join(d, "nope"), "--check"])
+
+        self.assertNotEqual(code, 0)
+        self.assertNotIn("skipped", out)
+        self.assertIn("存在しない", err)
 
     def test_main_exits_zero_for_unmigrated_directory_even_with_check(self):
         d = self.make_dir(vocab=None)
