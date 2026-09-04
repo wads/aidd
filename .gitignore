@@ -16,7 +16,7 @@ Thumbs.db
 
 # Dependencies (language-specific - uncomment as needed)
 # node_modules/
-# __pycache__/
+__pycache__/
 # .venv/
 # vendor/
 
