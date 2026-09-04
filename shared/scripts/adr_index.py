@@ -5,8 +5,9 @@ Usage:
     python3 {aidd_root}/shared/scripts/adr_index.py ADR_DIR [--vocab README.md] [--check]
 
 ADR_DIR 直下の NNNN-*.md を読む。関係リンク（supersedes 等）は同じ ADR_DIR 内の番号のみを指す。
-topic の語彙表は ADR_DIR/README.md の、見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。存在しない ADR_DIR は error。ハブ構成の services 側では
---vocab で system/adr/README.md を指す。語彙表も INDEX.md も無く --vocab も未指定のディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（--vocab のパス不在、INDEX.md があるのに語彙表が無い場合は error）。
+topic の語彙表は ADR_DIR/README.md の、見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。ハブ構成の services 側では
+--vocab で system/adr/README.md を指す。語彙表も INDEX.md も無く --vocab も未指定のディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する。
+次は error（skip の抜け道にしない）: ADR_DIR が無い・ディレクトリでない・読めない、--vocab のパスが無い・読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
 語彙表は README.md の表のうち、見出し行の 1 列目が `topic` の表だけを読む。
@@ -221,20 +222,31 @@ def render(adrs, vocab):
 def run(adr_dir, vocab_path=None, write=False):
     result = Result()
     if not os.path.isdir(adr_dir):
-        result.errors.append(f"ADR ディレクトリ {adr_dir} が存在しない（パスと cwd を確認する）")
+        what = "ディレクトリではない" if os.path.exists(adr_dir) else "存在しない"
+        result.errors.append(f"ADR ディレクトリ {adr_dir} が{what}（パスと cwd を確認する）")
+        return result
+    try:
+        entries = set(os.listdir(adr_dir))
+    except OSError as e:
+        result.errors.append(f"ADR ディレクトリ {adr_dir} を読めない（{e.strerror}）")
         return result
     default_vocab = os.path.join(adr_dir, VOCAB_NAME)
     vocab_file = vocab_path or default_vocab
-    if not os.path.exists(vocab_file):
-        if vocab_path:
-            result.errors.append(f"語彙表 {vocab_path} が無い（--vocab のパスを確認する）")
-        elif os.path.exists(os.path.join(adr_dir, INDEX_NAME)):
+    if vocab_path and not os.path.isfile(vocab_path):
+        result.errors.append(f"語彙表 {vocab_path} が無いかファイルではない（--vocab のパスを確認する）")
+        return result
+    if not vocab_path and VOCAB_NAME not in entries:
+        if INDEX_NAME in entries:
             result.errors.append(f"{INDEX_NAME} があるのに語彙表 {default_vocab} が無い（移行済みなら語彙表を戻す。services 側なら --vocab を指定する）")
         else:
             result.warnings.append(f"語彙表 {default_vocab} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
             result.skipped = True
         return result
-    vocab = load_vocab(vocab_file)
+    try:
+        vocab = load_vocab(vocab_file)
+    except OSError as e:
+        result.errors.append(f"語彙表 {vocab_file} を読めない（{e.strerror}）")
+        return result
     if not vocab:
         result.errors.append(f"語彙表 {vocab_file} に topic 表が無い（見出し 1 列目が `topic` の表を置く）")
         return result

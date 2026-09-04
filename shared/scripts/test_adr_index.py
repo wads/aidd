@@ -4,7 +4,7 @@
 - 有効 ADR（proposed / accepted）を topic 別に索引化し、失効 ADR（superseded / deprecated）は別枠に出す
 - 語彙表に無い topic、片方向リンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告する
 - topic の偏り（10 本超）を警告し、それ以外では警告を出さない
-- 語彙表も INDEX.md も無いディレクトリだけを未移行として照合を省略する（--vocab のパス不在や INDEX.md 残存は error）
+- 語彙表も INDEX.md も無いディレクトリだけを未移行として照合を省略する（ADR ディレクトリの不在・非ディレクトリ・読めない、--vocab のパス不在、INDEX.md 残存、topic 表不在は error）
 - --check で INDEX.md の陳腐化を検出する
 """
 import contextlib
@@ -402,6 +402,36 @@ class UnmigratedDirectory(AdrIndexCase):
         self.assertNotEqual(code, 0)
         self.assertNotIn("skipped", out)
         self.assertIn("存在しない", err)
+
+    def test_file_given_as_adr_dir_is_an_error_saying_not_a_directory(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "x"))
+
+        result = adr_index.run(os.path.join(d, "0001-a.md"))
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("ディレクトリではない" in e for e in result.errors))
+
+    @unittest.skipIf(os.geteuid() == 0, "root は権限に関係なく読めるため検証できない")
+    def test_unreadable_adr_dir_is_an_error_not_a_skip(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "x"))
+        os.chmod(d, 0)
+        self.addCleanup(os.chmod, d, 0o700)
+
+        result = adr_index.run(d)
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("読めない" in e for e in result.errors))
+
+    def test_vocab_pointing_to_a_directory_is_an_error(self):
+        d = self.make_dir(vocab=None)
+        self.write(d, "0001-a.md", adr("0001", "x"))
+
+        result = adr_index.run(d, vocab_path=d)
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("--vocab" in e for e in result.errors))
 
     def test_main_exits_zero_for_unmigrated_directory_even_with_check(self):
         d = self.make_dir(vocab=None)

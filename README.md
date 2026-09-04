@@ -37,7 +37,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 records_root: docs/                 # 既定。コンテキストハブ利用時は例: ../remosys-context/contexts
 issue_repo:   <owner>/<repo>        # 既定は自 repo
 service:      <service-name>        # ハブでサービス別に分ける場合のみ
-aidd_root:    .                   # 既定は自 repo ルート。別ディレクトリを直接参照する場合は例: ../aidd
+aidd_root:    /path/to/aidd       # 上の @ 参照と同じ場所。symlink で取り込んでいれば . （既定）
 
 ## Project Configuration
 - Test command: `npm test`
