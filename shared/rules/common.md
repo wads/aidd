@@ -40,16 +40,17 @@
 - `records_root`: 長期記録のルート。既定 `docs/`。コンテキストハブがある場合はそのパス（例 `../remosys-context/contexts`）
 - `issue_repo`: Issue を集約する GitHub リポジトリ。既定は対象 repo 自身（例 `owner/remosys-context`）
 - `service`: ハブ内でサービス別に分ける場合のサービス名（例 `remosys-frontend`）。単一 repo では省略可
+- `aidd_root`: aidd テンプレート（skill・rule・スクリプト）の配置先。既定は自 repo ルート。symlink や別ディレクトリで取り込む場合はそのパス（例 `../aidd`）。規約中のコマンド例はこの値で解決する
 
 記録の配置（records_root 起点）:
 
 - ADR → `adr/`。`service` 指定時のサービス固有判断は `services/{service}/adr/`、複数サービス横断は `system/adr/`
 - 設計書 → `design/`（同上のルールで `services/{service}/`・`system/`）
 - すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する
-- ADR にはさらに `topic`（判断領域タグ、複数可）と関係リンク `supersedes` / `superseded_by`（置き換え。旧決定は失効）、`amends` / `amended_by`（補足。旧決定は有効のまま）を付与する。関係は必ず双方向に書く。status は `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に限る。置き換え・補足された旧 ADR に許す編集は `status` と `superseded_by` / `amended_by` の追記のみで、本文には触れない
-- ADR ディレクトリには `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）と `INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧。`python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` で生成し、手で編集しない。マージ前は `--check` で陳腐化を検査する）を置く。関係リンクと INDEX.md の解決範囲は同一 ADR ディレクトリ内に限る。`system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側は `--vocab {records_root}/system/adr/README.md` で指す。語彙表が無いディレクトリは未移行として照合が省略される（移行が済むまで壊さない）。topic の見直しは定期ではなく、合う topic が無い・スクリプトが分割を警告した・振り返りで「引けなかった」が出た、のいずれかを契機に frontmatter の一括書き換えで行う（判断の経緯は ADR-0003）
+- ADR にはさらに `topic`（判断領域タグ、複数可）と関係リンク `supersedes` / `superseded_by`（置き換え。旧決定は失効）、`amends` / `amended_by`（補足。旧決定は有効のまま）を付与する。関係は必ず双方向に書く。status は `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に限る。置き換え・補足された旧 ADR に許す編集は `status` と `superseded_by` / `amended_by` の追記（と `updated` の更新）のみで、本文には触れない。topic の一括見直しも同じく frontmatter のみ
+- ADR ディレクトリには `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）と `INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧。`python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` で生成し、手で編集しない。マージ前は `--check` で陳腐化を検査する）を置く。関係リンクと INDEX.md の解決範囲は同一 ADR ディレクトリ内に限る。`system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側は `--vocab {records_root}/system/adr/README.md` で指す。語彙表も INDEX.md も無く `--vocab` も未指定のディレクトリだけが未移行として照合を省略される（移行が済むまで壊さない。`--vocab` のパス不在や、INDEX.md があるのに語彙表が無い場合は error）。topic の見直しは定期ではなく、合う topic が無い・スクリプトが分割を警告した・振り返りで「引けなかった」が出た、のいずれかを契機に frontmatter の一括書き換えで行う（判断の経緯は ADR-0003）
 
-宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo）として扱う。
+宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo、`aidd_root`: 自 repo ルート）として扱う。
 
 承認ゲートは記録の置き場所・Issue トラッカーに依存しない（人間によるコンテンツ承認）。standalone でもハブでも同一に機能する。
 

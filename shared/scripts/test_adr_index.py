@@ -4,7 +4,7 @@
 - 有効 ADR（proposed / accepted）を topic 別に索引化し、失効 ADR（superseded / deprecated）は別枠に出す
 - 語彙表に無い topic、片方向リンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告する
 - topic の偏り（10 本超）を警告し、それ以外では警告を出さない
-- 語彙表が無いディレクトリは未移行として照合を省略する
+- 語彙表も INDEX.md も無いディレクトリだけを未移行として照合を省略する（--vocab のパス不在や INDEX.md 残存は error）
 - --check で INDEX.md の陳腐化を検出する
 """
 import contextlib
@@ -181,6 +181,37 @@ class FrontmatterFormats(AdrIndexCase):
 
         self.assertTrue(any("INDEX.md" in e for e in adr_index.run(d).errors))
 
+    def test_only_the_table_headed_topic_counts_as_vocab(self):
+        d = self.make_dir(vocab=VOCAB + textwrap.dedent("""
+
+            | ファイル | 役割 |
+            |---|---|
+            | `INDEX.md` | 生成物 |
+            """))
+        self.write(d, "0001-a.md", adr("0001", "x", topic="[INDEX.md]"))
+        self.write(d, "0002-b.md", adr("0002", "y", topic="[platform]"))
+
+        errors = adr_index.run(d).errors
+
+        self.assertTrue(any("INDEX.md" in e for e in errors))
+        self.assertFalse(any("platform" in e for e in errors))
+
+    def test_scalar_followed_by_block_items_becomes_a_list(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", textwrap.dedent("""\
+            ---
+            status: accepted
+            topic: records
+              - platform
+            ---
+            # [ADR-0001] x
+            """))
+
+        result = adr_index.run(d)
+
+        self.assertEqual(result.errors, [])
+        self.assertIn("ADR-0001", section(result.index, "platform"))
+
 
 class Validation(AdrIndexCase):
     def test_topic_not_in_vocab_is_an_error(self):
@@ -219,6 +250,12 @@ class Validation(AdrIndexCase):
         self.write(d, "0002-new.md", adr("0002", "新", supersedes="[0009]"))
 
         self.assertTrue(any(e.startswith("ADR-0002:") and "0009" in e for e in adr_index.run(d).errors))
+
+    def test_back_link_to_unknown_adr_is_an_error(self):
+        d = self.make_dir()
+        self.write(d, "0001-old.md", adr("0001", "旧", status="superseded", superseded_by="[0009]"))
+
+        self.assertTrue(any(e.startswith("ADR-0001:") and "0009" in e for e in adr_index.run(d).errors))
 
     def test_superseded_by_without_superseded_status_is_an_error(self):
         d = self.make_dir()
@@ -298,6 +335,15 @@ class SkewWarnings(AdrIndexCase):
 
         self.assertEqual(adr_index.run(d).warnings, [])
 
+    def test_skew_is_counted_per_topic_not_in_total(self):
+        d = self.make_dir()
+        for i in range(1, 7):
+            self.write(d, f"{i:04d}-a.md", adr(f"{i:04d}", f"x{i}", topic="[records]"))
+        for i in range(7, 13):
+            self.write(d, f"{i:04d}-b.md", adr(f"{i:04d}", f"y{i}", topic="[platform]"))
+
+        self.assertEqual(adr_index.run(d).warnings, [])
+
     def test_small_or_single_topics_are_not_warned(self):
         d = self.make_dir()
         self.write(d, "0001-a.md", adr("0001", "x", topic="[platform]"))
@@ -318,6 +364,25 @@ class UnmigratedDirectory(AdrIndexCase):
         self.assertEqual(result.errors, [])
         self.assertTrue(any("語彙表" in w for w in result.warnings))
         self.assertFalse(os.path.exists(os.path.join(d, "INDEX.md")))
+
+    def test_explicit_vocab_path_that_does_not_exist_is_an_error_not_a_skip(self):
+        d = self.make_dir(vocab=None)
+        self.write(d, "0001-a.md", adr("0001", "x"))
+
+        result = adr_index.run(d, vocab_path=os.path.join(d, "nope", "README.md"))
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("--vocab" in e for e in result.errors))
+
+    def test_index_without_vocab_is_an_error_not_a_skip(self):
+        d = self.make_dir(vocab=None)
+        self.write(d, "0001-a.md", adr("0001", "x"))
+        self.write(d, "INDEX.md", "stale\n")
+
+        result = adr_index.run(d)
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("INDEX.md" in e and "語彙表" in e for e in result.errors))
 
     def test_main_exits_zero_for_unmigrated_directory_even_with_check(self):
         d = self.make_dir(vocab=None)

@@ -48,8 +48,8 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 | 成果物 | Intent | 置き場所 |
 |---|---|---|
-| ADR | Decision Intent | `docs/adr/{連番}-{Issue 番号}-short-title.md`（例: `00042-#123-cache-strategy.md`） |
-| 設計書 | Design Intent | `docs/design/{連番}-{Issue 番号}-short-title.md` |
+| ADR | Decision Intent | `docs/adr/{連番}-short-title.md`（例: `0042-cache-strategy.md`。Issue 番号は frontmatter で紐づける） |
+| 設計書 | Design Intent | `docs/design/{連番}-short-title.md` |
 | テストコード | Verification Intent | テストディレクトリ（コードとして永続） |
 
 ### 短期層（PR / GitHub Issue、使い捨て）
@@ -81,7 +81,7 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 
 - ADR のファイル名: `{連番}-short-title.md`（例: `0042-cache-strategy.md`）。連番は 4 桁 0 埋めで ADR ディレクトリ内で独立。Issue 番号は frontmatter またはコメントで紐づけ、ファイル名には含めない（`adr/workflow.md`）。設計書は `design-docs` skill の規約に従う
 - 同一Issue から複数の ADR が出る場合は連番と short-title で区別する
-- short-title は小文字ケバブケースとする（大文字のIssue 番号部分と機械的に区別できるようにするため）
+- short-title は小文字ケバブケースとする
 - 並行ブランチで連番が衝突した場合は、後にマージする側がリネームする（P7 検証・レビューのチェック項目に連番重複の検出を含める）
 - branch 名: `feat/#123-short-desc`
 - PR タイトル: `#123: 変更の要約`
@@ -240,7 +240,7 @@ feature は現行の Product Intent テンプレートをそのまま使う。�
 - **人間**: 採用を判断する
 - **議論の中心**: トレードオフの重み付け（何を優先し何を捨てるか）
 - **exit**: 採用しなかった選択肢とその理由が ADR に書かれている
-- **残すコンテキスト**: ADR → `docs/adr/{連番}-{Issue 番号}-short-title.md`（イミュータブル。判断が変わったら新しい ADR で置き換える）
+- **残すコンテキスト**: ADR → `docs/adr/{連番}-short-title.md`（イミュータブル。判断が変わったら新しい ADR で置き換える）
 - **Intent**: Decision Intent
 
 ### P4 設計
@@ -250,7 +250,7 @@ feature は現行の Product Intent テンプレートをそのまま使う。�
 - **人間**: 設計を承認する
 - **議論の中心**: 責務の置き場所、既存設計との整合、例外ケースの扱い
 - **exit**: 受入れ条件の各項目について「設計のどこで満たされるか」を対応付けられる
-- **残すコンテキスト**: 設計書 → `docs/design/{連番}-{Issue 番号}-short-title.md`
+- **残すコンテキスト**: 設計書 → `docs/design/{連番}-short-title.md`
 - **Intent**: Design Intent
 
 ### P5 実装計画

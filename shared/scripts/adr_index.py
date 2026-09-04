@@ -6,9 +6,10 @@ Usage:
 
 ADR_DIR 直下の NNNN-*.md を読む。関係リンク（supersedes 等）は同じ ADR_DIR 内の番号のみを指す。
 topic の語彙表は ADR_DIR/README.md の表（1 列目がバッククォートの topic 名）。ハブ構成の services 側では
---vocab で system/adr/README.md を指す。語彙表が無いディレクトリは未移行とみなし、警告のみで照合と生成を省略する。
+--vocab で system/adr/README.md を指す。語彙表も INDEX.md も無く --vocab も未指定のディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（--vocab のパス不在、INDEX.md があるのに語彙表が無い場合は error）。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
+語彙表は README.md の表のうち、見出し行の 1 列目が `topic` の表だけを読む。
 """
 import argparse
 import os
@@ -25,6 +26,7 @@ VOCAB_NAME = "README.md"
 
 ADR_FILE = re.compile(r"^(\d{4})-.*\.md$")
 NUMBER = re.compile(r"(\d+)")
+TABLE_ROW = re.compile(r"^\|(.*)\|?\s*$")
 VOCAB_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|?\s*$")
 TITLE_PREFIX = re.compile(r"^\s*(?:\[ADR-\d+\]|ADR[- ]?\d+[:.]?|\d{4}\.)\s*")
 COMMENT = re.compile(r"\s+#\s.*$")
@@ -62,7 +64,9 @@ def parse_frontmatter(text):
         if not line.strip():
             continue
         item = BLOCK_ITEM.match(line)
-        if item and key is not None and isinstance(data.get(key), list):
+        if item and key is not None:
+            if not isinstance(data[key], list):
+                data[key] = [data[key]] if data[key] else []
             data[key].append(_unquote(item.group(1)))
             continue
         if ":" not in line:
@@ -91,11 +95,23 @@ def normalize_number(value):
 
 
 def load_vocab(path):
+    """README.md の表のうち、見出し行の 1 列目が topic である表の行だけを語彙にする。"""
     vocab = []
+    in_topic_table = False
     with open(path, encoding="utf-8") as f:
         for line in f:
-            match = VOCAB_ROW.match(line.strip())
-            if match and match.group(1) != "topic":
+            line = line.strip()
+            if not TABLE_ROW.match(line):
+                in_topic_table = False
+                continue
+            first_cell = line.strip("|").split("|", 1)[0].strip().strip("`")
+            if first_cell == "topic":
+                in_topic_table = True
+                continue
+            if not in_topic_table or set(first_cell) <= set("-: "):
+                continue
+            match = VOCAB_ROW.match(line)
+            if match:
                 vocab.append((match.group(1), match.group(2)))
     return vocab
 
@@ -204,10 +220,16 @@ def render(adrs, vocab):
 
 def run(adr_dir, vocab_path=None, write=False):
     result = Result()
-    vocab_file = vocab_path or os.path.join(adr_dir, VOCAB_NAME)
+    default_vocab = os.path.join(adr_dir, VOCAB_NAME)
+    vocab_file = vocab_path or default_vocab
     if not os.path.exists(vocab_file):
-        result.warnings.append(f"語彙表 {vocab_file} が無い。未移行として照合と索引生成を省略する")
-        result.skipped = True
+        if vocab_path:
+            result.errors.append(f"語彙表 {vocab_path} が無い（--vocab のパスを確認する）")
+        elif os.path.exists(os.path.join(adr_dir, INDEX_NAME)):
+            result.errors.append(f"{INDEX_NAME} があるのに語彙表 {default_vocab} が無い（移行済みなら語彙表を戻す。services 側なら --vocab を指定する）")
+        else:
+            result.warnings.append(f"語彙表 {default_vocab} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
+            result.skipped = True
         return result
     vocab = load_vocab(vocab_file)
     adrs, result.warnings = load_adrs(adr_dir)

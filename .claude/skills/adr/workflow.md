@@ -31,7 +31,7 @@
 - ファイル名: `{records_root}/adr/{連番}-short-title.md`（連番は 4 桁 0 埋め、ADR ディレクトリ内で独立）。Binding に `service` がある場合、サービス固有判断は `{records_root}/services/{service}/adr/`、複数サービス横断は `{records_root}/system/adr/` に置く
 - 対象 Issue 番号は frontmatter またはコメントで紐づける（ファイル名には含めない）
 - 既存 ADR の判断を置き換える場合は、新 ADR の frontmatter に `supersedes: [旧番号]` を書き、旧 ADR の frontmatter に `superseded_by: [新番号]` と `status: superseded` を追記する。補足の場合は `amends` / `amended_by` を同様に双方向で書く。旧 ADR への編集はこの frontmatter 変更のみで、本文には触れない
-- 記録後に `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}`（services 側は `--vocab {records_root}/system/adr/README.md` を付ける）を実行して `INDEX.md` を再生成し、error が無いことを確認する（warning は通過を妨げない。`skipped` が出た場合は語彙表 `README.md` が無い未移行ディレクトリなので、先に語彙表を作る）
+- 記録後、および既存 ADR の status を変えた後に `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}`（services 側は `--vocab {records_root}/system/adr/README.md` を付ける）を実行して `INDEX.md` を再生成し、error が無いことを確認する（warning は通過を妨げない）。`skipped` が出るのは語彙表も INDEX.md も無い未移行ディレクトリだけで、移行 Issue を確認して通過させる（system 側は語彙表 `README.md` を作った時点で移行が始まる）
 - 対象の GitHub Issue へリンクをコメントする
 
 ### 着手前に判断が固まった場合（`proposed` で起こす）
