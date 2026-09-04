@@ -14,7 +14,7 @@ amended_by: []
 
 ## ステータス
 
-承認済み（2026-09-04）
+承認済み（2026-09-04。critical-gate の指摘を受けて同日に決定 4・5・7 を修正）
 
 ## 背景
 
@@ -60,10 +60,11 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
    - `amends` / `amended_by`: 補足（旧決定は有効のまま一部を追加・修正）。同じく双方向
 2. **status の語彙**: `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に統一。`active` は使わない
 3. **旧 ADR の編集範囲**: `status` の変更と `superseded_by` / `amended_by` の追記のみ。本文には触れない。失効の表示は frontmatter と INDEX.md が担う。ADR-0001 冒頭の注記は残置し、以後は書かない
-4. **ADR ディレクトリの構成**: `README.md`（手書き。topic 語彙表と一行の意味説明）、`INDEX.md`（生成物。有効 ADR の topic 別一覧、置き換え・補足関係を併記。先頭に生成物・編集禁止を明記）。Binding で `system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側は参照のみ
-5. **索引の生成と照合**: aidd 同梱のスクリプト（python3、依存なし。`shared/scripts/` 配下）が records_root を引数に INDEX.md を生成する。同時に、語彙表に無い topic、片方向のリンク、`superseded` / `deprecated` の索引残存、topic の偏り（1 topic に 10 本超、1 本のみが継続）を報告する。マージ前契約チェック（`review/acceptance.md` §7）で実行する
+4. **ADR ディレクトリの構成**: `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）、`INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧、置き換え・補足関係を併記。先頭に生成物・編集禁止を明記）。INDEX.md と関係リンクの解決範囲は **同一 ADR ディレクトリ内に限る**（連番はディレクトリごとに独立のため）。Binding で `system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側はスクリプトの `--vocab` でそれを指す。ディレクトリ横断の関係が必要になった時点で本 ADR を補足する
+5. **索引の生成と照合**: aidd 同梱のスクリプト `shared/scripts/adr_index.py`（python3、依存なし）が ADR ディレクトリを引数に INDEX.md を生成する。同時に、語彙表に無い topic、片方向のリンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告し、誤りがあれば INDEX.md を書かない。topic の偏り（1 topic に 10 本超）は警告。語彙表が無いディレクトリは未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査）で実行する
 6. **skill の変更**: adr workflow 手順 1 に「同 topic の既存 ADR を読み、置換 / 補足 / 無関係のいずれかを宣言する」を追加。critical-gate のレンズに「既存 ADR と矛盾していないか」を追加。context-snapshot と implementation-plan の ADR 参照を Issue 番号 grep から Issue 番号 + topic へ広げる
-7. **topic の見直し**: 定期見直しはしない。トリガーは (a) 新 ADR に合う topic が無い、(b) スクリプトの偏り報告、(c) 振り返りで「引けなかった」が期待違反として出た、の 3 つ。見直しは frontmatter の一括書き換えと再生成で行い、本文には触れない
+7. **topic の見直し**: 定期見直しはしない。トリガーは (a) 新 ADR に合う topic が無い、(b) スクリプトの分割警告、(c) 振り返りで「引けなかった」が期待違反として出た、の 3 つ。見直しは frontmatter の一括書き換えと再生成で行い、本文には触れない。「1 本のみの topic」は警告しない（新 topic は必ず 1 本から始まり、統合の要否は (c) で拾う）
+8. **適用範囲**: 本 ADR は ADR のみを対象とする。設計書の置き換え規約（`design-docs` skill の「Replaces」）は変えない。設計書へ広げる場合は別 ADR で決める
 
 ## 設計意図
 
@@ -78,7 +79,8 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 ## 影響範囲
 
 - aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/adr/README.md`・`INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
-- 利用側（remosys-context ハブ）: `conventions/context-format.md`、`system/adr/` の既存 9 本への topic 付与と見出し・status の統一、`README.md` / `INDEX.md` の新設。別 Issue で行う
+- aidd（追加）: `docs/design/0001-dev-phase-decomposition.md` と `docs/design/intent-driven-development.md` の置き換え規約の記述（ADR に限定）、`README.md` の構成表、`docs/manual.md`、`.claude/skills/retrospective/workflow.md`（見直しトリガー (c) の受け皿）、`CLAUDE.md` の Test command、`.gitignore`
+- 利用側（remosys-context ハブ）: `conventions/context-format.md` の ADR 向け status 語彙の分離（ハブ側の P3 判断）、`system/adr/` の既存 9 本への topic 付与と見出し・status の統一、`README.md` / `INDEX.md` の新設。[clachic/remosys-context#79](https://github.com/clachic/remosys-context/issues/79) で行う。移行完了までは決定 5 の未移行扱いで照合が省略される
 
 ## 議論ログ
 
@@ -86,3 +88,5 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 - [2026-09-04] AI: 飽和は skill が Issue 番号 grep で参照するため起きにくい。実在するのは「引けない・衝突に気づけない・置き換えが片方向」の 3 点と評価
 - [2026-09-04] Human: 用語（supersedes / superseded_by / amends）、jrc での topic 例、README と INDEX の使い分け、見直しのタイミングを確認。INDEX.md は ADR ディレクトリ内に置く想定と明示
 - [2026-09-04] Human: 選択式の問いで、索引はスクリプト生成、status は accepted 系、旧 ADR の編集は frontmatter のみ、を採用
+- [2026-09-04] AI: critical-gate（4 視点）で不通過。Critical 4 件（topic 所属・有効判定・誤警告のテスト欠落、`__pycache__` のコミット）と、設計判断を要する指摘 4 件（1 本警告の扱い、設計書への適用範囲、ハブ横断参照、ハブへの即時影響）
+- [2026-09-04] Human: 1 本警告は廃止、適用は ADR 限定、関係リンクは同一ディレクトリ内に限定、ハブは移行 Issue（#79）を作成し未移行ディレクトリは照合を省略、を採用

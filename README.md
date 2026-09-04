@@ -68,6 +68,7 @@ Codex を併用する場合は `AGENTS.md` から `shared/rules/common.md` と `
 | `.claude/skills/` | skill 本文の source of truth（Claude Code ネイティブ skill） |
 | `shared/rules/` | 共通ルール（Binding 規約を含む） |
 | `shared/templates/` | 汎用テンプレート |
+| `shared/scripts/` | 補助スクリプト（ADR 索引の生成・照合 `adr_index.py` とそのテスト） |
 | `docs/` | ADR、設計、チュートリアル、マニュアル |
 
 ## Skills

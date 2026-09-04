@@ -105,7 +105,7 @@ Intent は上書きしない。ある時点の Intent は、その時点の判�
 
 `NNNN` は 0 埋めの連番とする。日付で並べる必要がある場合は `YYYYMMDD-short-title.md` を使う。
 
-新しい判断が古い判断を置き換える場合は、古い文書の本文を修正せず、新しい文書側に以下を記録する。古い文書には frontmatter の `status` と逆リンク（`superseded_by` / `amended_by`）だけを追記する（ADR-0003）。
+新しい判断が古い判断を置き換える場合は、古い文書の本文を修正せず、新しい文書側に以下を記録する。ADR の場合はさらに、古い ADR の frontmatter に `status` と逆リンク（`superseded_by` / `amended_by`）だけを追記する（ADR-0003。設計書は「Replaces」表記のまま）。
 
 - どの Intent / ADR / 設計書を置き換えるのか
 - 何が変わったのか
@@ -145,7 +145,7 @@ ADR は、重要な技術判断の意図をイミュータブルに残す。
 - 影響するIssue、設計書、実装
 
 ADR は仕様の本文ではなく、判断の理由を残す場所である。
-ADR-0001 の判断が後から変わった場合、ADR-0001 を書き換えない。ADR-0002 として「ADR-0001 を置き換える判断」を追加する。
+ADR-0001 の判断が後から変わった場合、ADR-0001 の本文を書き換えない。ADR-0002 として「ADR-0001 を置き換える判断」を追加し、ADR-0001 の frontmatter に `superseded_by` を書く。
 
 ### Design Doc: Design Intent
 

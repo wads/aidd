@@ -47,7 +47,7 @@
 - 設計書 → `design/`（同上のルールで `services/{service}/`・`system/`）
 - すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する
 - ADR にはさらに `topic`（判断領域タグ、複数可）と関係リンク `supersedes` / `superseded_by`（置き換え。旧決定は失効）、`amends` / `amended_by`（補足。旧決定は有効のまま）を付与する。関係は必ず双方向に書く。status は `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に限る。置き換え・補足された旧 ADR に許す編集は `status` と `superseded_by` / `amended_by` の追記のみで、本文には触れない
-- ADR ディレクトリには `README.md`（手書き。topic 語彙表と一行の意味説明）と `INDEX.md`（生成物。有効 ADR の topic 別一覧。`python3 shared/scripts/adr_index.py {adr_dir}` で生成と照合を行い、手で編集しない）を置く。`system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側はそれを参照する。topic の見直しは定期ではなく、合う topic が無い・スクリプトが偏りを報告した・振り返りで「引けなかった」が出た、のいずれかを契機に frontmatter の一括書き換えで行う（判断の経緯は ADR-0003）
+- ADR ディレクトリには `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）と `INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧。`python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` で生成し、手で編集しない。マージ前は `--check` で陳腐化を検査する）を置く。関係リンクと INDEX.md の解決範囲は同一 ADR ディレクトリ内に限る。`system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側は `--vocab {records_root}/system/adr/README.md` で指す。語彙表が無いディレクトリは未移行として照合が省略される（移行が済むまで壊さない）。topic の見直しは定期ではなく、合う topic が無い・スクリプトが分割を警告した・振り返りで「引けなかった」が出た、のいずれかを契機に frontmatter の一括書き換えで行う（判断の経緯は ADR-0003）
 
 宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo）として扱う。
 
