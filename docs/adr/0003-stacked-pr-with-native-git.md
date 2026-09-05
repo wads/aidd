@@ -2,7 +2,7 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-04
+updated: 2026-09-05
 ---
 
 # [ADR-0003] stacked PR 運用を git 標準機能 + gh で構成する
@@ -50,7 +50,7 @@ Issue #18 で aidd フローに stacked PR（積み上げ式 PR）運用を導�
 
 ## 決定内容
 
-stacked PR 運用は git 標準機能（`rebase --update-refs`、`range-diff`）と gh のみで構成する。積み替えは連鎖付け替えで一括、再ゲート免除判定は range-diff、計画全体は Issue コメント（各 PR は自ステップ分）、マージ方式は規定しない。
+stacked PR 運用は git 標準機能（`rebase --update-refs` ほか）と gh のみで構成する。積み替えは連鎖付け替えで一括、再ゲート免除判定は range-diff（**→ ADR-0004 で変更行の比較に置き換え**）、計画全体は Issue コメント（各 PR は自ステップ分）、マージ方式は規定しない。
 
 ## 設計意図
 

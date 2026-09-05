@@ -14,7 +14,8 @@ user-invocable: true
 ## 環境要件
 
 - git 2.38 以上（`rebase --update-refs` を使うため。`git --version` で確認）
-- gh CLI（バージョン要件なし。`gh pr create` / `gh pr edit --base` / `gh pr comment` が使えること = 対象 repo への認証があること）
+- bash または zsh（§4 の判定でプロセス置換 `<(…)` を使う）
+- gh CLI（`gh pr create` / `edit --base` / `ready` / `view --json mergeCommit` / `comment` が使えること。**必要な最低バージョンは未確認** — 手順が動かない場合はまず `gh --version` の更新を試す）
 
 ## 入力
 

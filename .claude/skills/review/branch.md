@@ -19,6 +19,8 @@ git log --first-parent --no-merges main..HEAD -p | cat
 git log --first-parent --no-merges main..HEAD --name-only --format="" | sort | uniq | cat
 ```
 
+`main` の位置は**レビュー対象の base** に読み替える。stacked PR の上位 PR をレビューするときは既定ブランチではなくその PR の base（前ステップのブランチ）を指定する。既定ブランチのままだと下位ステップの差分まで対象に入り、PR 単位のレビュー（`acceptance.md` の適用単位）と食い違う。
+
 差分だけでなく変更ファイルの全体も読む。
 
 ### Step 2. コンテキストの把握
