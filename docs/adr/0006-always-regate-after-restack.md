@@ -61,7 +61,7 @@ updated: 2026-09-05
 ## 影響範囲
 
 - `stacked-pr` skill §4（判定手順の廃止）・§5（失効規則）
-- `critical-gate` §6（再ゲート要否）
+- `critical-gate` §6（再ゲート要否）、`review/acceptance.md`（スタック時の適用単位表の失効規則）
 - 設計書 `docs/design/0002-stacked-pr-responsibilities.md`
 - Issue #18 の AC-9（「diff 不変の機械的積み替えは再ゲート不要」の条件が無くなる。Intent Delta を Issue へ記録）
 

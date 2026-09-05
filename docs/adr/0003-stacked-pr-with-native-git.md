@@ -31,7 +31,7 @@ Issue #18 で aidd フローに stacked PR（積み上げ式 PR）運用を導�
 
 ### 論点 3: 再ゲート免除の「diff 不変」判定（AC-9）
 
-> この論点の決定は [ADR-0004](0004-diff-unchanged-by-changed-lines.md) に置き換えられた（2026-09-05、QC-1 検証で range-diff の過検知が判明したため）。以下は当時の記録。
+> この論点の決定は [ADR-0004](0004-diff-unchanged-by-changed-lines.md) に置き換えられ、さらに **[ADR-0006](0006-always-regate-after-restack.md) で判定そのものが廃止された**（積み替え後は常に再ゲートする）。以下は当時の記録。
 
 - **案 3a: `git range-diff` で積み替え前後を比較（採用）**: 標準機能で機械的に判定でき、判定結果を PR コメントへ転記できる
 - 案 3b: patch-id 直接比較: 同じことをより低レベルにやるだけで、判定根拠の説明性が低い
@@ -50,7 +50,7 @@ Issue #18 で aidd フローに stacked PR（積み上げ式 PR）運用を導�
 
 ## 決定内容
 
-stacked PR 運用は git 標準機能（`rebase --update-refs` ほか）と gh のみで構成する。積み替えは連鎖付け替えで一括、再ゲート免除判定は range-diff（**→ ADR-0004 で変更行の比較に置き換え**）、計画全体は Issue コメント（各 PR は自ステップ分）、マージ方式は規定しない。
+stacked PR 運用は git 標準機能（`rebase --update-refs` ほか）と gh のみで構成する。積み替えは連鎖付け替えで一括、再ゲート免除判定は range-diff（**→ ADR-0006 で免除そのものを廃止**）、計画全体は Issue コメント（各 PR は自ステップ分）、マージ方式は規定しない。
 
 ## 設計意図
 
@@ -73,4 +73,4 @@ aidd の不変条件「軽さ」を優先し、利用先 repo に追加のツー
 
 - Issue: wads/aidd#18
 - 置き換える ADR: なし
-- 論点 3 を置き換えた ADR: [ADR-0004](0004-diff-unchanged-by-changed-lines.md)（Superseded in part）
+- 論点 3 を置き換えた ADR: [ADR-0004](0004-diff-unchanged-by-changed-lines.md) → [ADR-0006](0006-always-regate-after-restack.md)（判定を廃止。0004 は superseded）

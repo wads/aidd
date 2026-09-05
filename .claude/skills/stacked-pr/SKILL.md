@@ -14,7 +14,7 @@ user-invocable: true
 ## 環境要件
 
 - git 2.38 以上（`rebase --update-refs` を使うため。`git --version` で確認）
-- bash または zsh（§4 の判定でプロセス置換 `<(…)` を使う）
+- 対象 repo で draft PR が使えること（GitHub の private repo では有料プランが必要。draft はマージ順序のガードに使う）
 - gh CLI（`gh pr create` / `edit --base` / `ready` / `merge` / `view --json mergeCommit` / `comment` が使えること。**必要な最低バージョンは未確認** — 手順が動かない場合はまず `gh --version` の更新を試す）
 
 ## 入力
@@ -25,7 +25,7 @@ user-invocable: true
 ## 出力
 
 - ステップごとの draft PR（base は前ステップのブランチ）
-- 積み替え・base 付け替えの実行結果と、diff 不変判定（再ゲート要否）の記録 → PR コメント
+- 積み替え・base 付け替えの実行結果と、差分の変化の記録・再ゲートの結果 → PR コメント
 
 ## 扱う Intent
 
