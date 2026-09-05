@@ -23,6 +23,7 @@ user-invocable: true
 
 - 優先度つきのレビュー結果、もしくは PR コメント一覧と推奨対応
 - `acceptance` の場合: AC-ID つき検証記録 → PR コメント、昇格判定（あり/なし）、必須セクションをそろえた PR 説明、コンテキストスナップショット
+  - stacked PR のときは PR 単位で回り、節ごとに下位 PR と最終 PR へ分担する（`acceptance.md` の適用単位表）
 
 ## 扱う Intent
 
