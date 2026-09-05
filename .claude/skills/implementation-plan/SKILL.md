@@ -1,6 +1,6 @@
 ---
 name: implementation-plan
-description: P5 実装計画を行う skill。確定済みの要求・設計をもとに、実装順序・変更範囲・検証方針を Execution Intent として draft PR の説明文にまとめ、人間の承認を得てから実装（P6 実装）へ進むときに使う。
+description: P5 実装計画を行う skill。確定済みの要求・設計をもとに、実装順序・変更範囲・検証方針を Execution Intent としてまとめ（ステップが複数なら stacked PR の構成もあわせて確定し）、人間の承認を得てから実装（P6 実装）へ進むときに使う。
 user-invocable: true
 ---
 
@@ -19,8 +19,10 @@ user-invocable: true
 
 ## 出力
 
-- 実装方針 → draft PR の説明文（`template.md` 参照、使い捨ての短期コンテキスト）
+- 実装方針（`template.md` 参照、使い捨ての短期コンテキスト）
   - 各ステップに AC-ID 対応と TDD / DIRECT 区分
+  - ステップが 1 つ: draft PR の説明文に書く
+  - ステップが複数: 計画全体（スタック構成を含む）を Issue コメントに書き、最下段 draft PR の説明は自ステップ分にする（手順は `stacked-pr`）
 
 ## 扱う Intent
 
@@ -30,6 +32,7 @@ user-invocable: true
 
 - 各ステップが AC-ID・設計のどの項目に対応するか明示されている
 - 全ステップに TDD / DIRECT 区分があり、DIRECT には実施手順と検証手順がある
+- ステップが複数の場合、スタック構成（各 PR の内容・積む順序・base 関係）が合意されている
 - 人間が計画を承認している
 
 ## 読むべき補助ファイル
