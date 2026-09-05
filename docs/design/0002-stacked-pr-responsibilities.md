@@ -1,8 +1,9 @@
 # 設計書: stacked PR 運用の責務配置
 
-- Status: Accepted（2026-09-04 人間承認。P5 軽量ゲート指摘 C-1/W-2/S-2 の解消を同日追記・再承認）
+- Status: Accepted（2026-09-04 人間承認。P5 軽量ゲート・P7 ゲートの指摘反映を随時追記）
+- Updated: 2026-09-05
 - Date: 2026-09-04
-- 関連: [ADR-0003](../adr/0003-stacked-pr-with-native-git.md)、Issue #18（P2 確定版 AC/QC）
+- 関連: [ADR-0003](../adr/0003-stacked-pr-with-native-git.md)、[ADR-0004](../adr/0004-diff-unchanged-by-changed-lines.md)、[ADR-0005](../adr/0005-draft-guard-for-merge-order.md)、Issue #18（P2 確定版 AC/QC）
 
 ## 目的
 
@@ -17,7 +18,7 @@ stacked PR（積み上げ式 PR）運用の規則・手順を、どの skill が
 
 | skill | 責務（スタック関連） | 対応 AC |
 |---|---|---|
-| **stacked-pr（新設）** | 手順の単一の正: PR 作成（base 指定・ステップ 1 は既定ブランチ）、ステップブランチ命名（`feature/issue-{n}-step{k}-{要約}`。P1 で作った Issue ブランチは P5 のスタック確定時に step1 名へ改名する）、積み替え（`rebase --update-refs`）と積み替え後のテスト再実行（green 確認）、マージ順序の draft ガード（最下段以外は draft 維持）、マージ後の着地確認と誤マージ復旧、base 付け替え、squash マージ後の追随、diff 不変判定（変更行の比較。ADR-0004）と再ゲート要否・チェック済み失効の判定、コンフリクト境界（自明= AI / 判断あり= 人間）、force-with-lease の例外規定、計画変更時のスタック構成更新、環境要件（git 2.38+、gh 側の要件明記） | AC-2, 5, 6, 8, 9 / QC-1, 3 |
+| **stacked-pr（新設）** | 手順の単一の正: PR 作成（base 指定・ステップ 1 は既定ブランチ）、ステップブランチ命名（`feature/issue-{n}-step{k}-{要約}`。P1 で作った Issue ブランチは P5 のスタック確定時に step1 名へ改名する）、積み替え（`rebase --update-refs`）と積み替え後のテスト再実行（green 確認）、マージ順序の draft ガード（最下段以外は draft 維持。ADR-0005）、マージ後の着地確認と誤マージ復旧、base 付け替え、squash マージ後の追随、diff 不変判定（変更行の比較。ADR-0004）と再ゲート要否・チェック済み失効の判定、コンフリクト境界（自明= AI / 判断あり= 人間）、force-with-lease の例外規定、計画変更時のスタック構成更新、環境要件（git 2.38+、gh 側の要件明記） | AC-2, 5, 6, 8, 9 / QC-1, 3 |
 | implementation-plan | 複数ステップ計画の承認時にスタック構成（ステップ = 1 PR の境界・順序）を対話で確定。計画全体を Issue コメントへ、最下段 PR は自ステップ分の説明で作成（ADR-0003 論点 4） | AC-1 |
 | tdd-cycle / dev（自動進行） | ステップ完了（TDD = テスト green / DIRECT = 検証手順完了）で `stacked-pr` を参照して PR 作成、次ステップへ先行着手。下位 PR への指摘が設計判断（P3/P4 再入）を要するときは先行積みを中断 | AC-2, 3 |
 | critical-gate | 適用単位 = PR の差分ごと。再ゲート要否は `stacked-pr` の判定に従う | AC-4, 9 |
