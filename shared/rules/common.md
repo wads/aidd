@@ -62,6 +62,7 @@
 - `tdd-cycle`（P6 実装）
 - `review`（P7 検証・レビュー）
 - `critical-gate`（人間レビュー前の批判的チェック。P7 検証・レビュー 必須・P2/P5 軽量版）
+- `stacked-pr`（積み上げ式 PR の作成・積み替え・マージ追随。ステップ = 1 PR で進めるとき）
 - `context-snapshot`（判断ポイントで人間に提示するレビュー・判断用文書の生成）
 - `retrospective`（P8 振り返り）
 - `multi-agent-discussion`

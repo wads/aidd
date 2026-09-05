@@ -10,7 +10,7 @@ updated: 2026-09-05
 - Status: Accepted（2026-09-04 人間承認。P5 軽量ゲート・P7 ゲートの指摘反映を随時追記）
 - Updated: 2026-09-05
 - Date: 2026-09-04
-- 関連: [ADR-0003](../adr/0003-stacked-pr-with-native-git.md)、[ADR-0004](../adr/0004-diff-unchanged-by-changed-lines.md)、[ADR-0005](../adr/0005-draft-guard-for-merge-order.md)、Issue #18（P2 確定版 AC/QC）
+- 関連: [ADR-0006](../adr/0006-always-regate-after-restack.md)（ADR-0004 を置き換え）、[ADR-0003](../adr/0003-stacked-pr-with-native-git.md)、[ADR-0004](../adr/0004-diff-unchanged-by-changed-lines.md)、[ADR-0005](../adr/0005-draft-guard-for-merge-order.md)、Issue #18（P2 確定版 AC/QC）
 
 ## 目的
 
@@ -25,7 +25,7 @@ stacked PR（積み上げ式 PR）運用の規則・手順を、どの skill が
 
 | skill | 責務（スタック関連） | 対応 AC |
 |---|---|---|
-| **stacked-pr（新設）** | 手順の単一の正: PR 作成（base 指定・ステップ 1 は既定ブランチ）、ステップブランチ命名（`feature/issue-{n}-step{k}-{要約}`。P1 で作った Issue ブランチは P5 のスタック確定時に step1 名へ改名する）、積み替え（`rebase --update-refs`）と積み替え後のテスト再実行（green 確認）、マージ順序の draft ガード（最下段以外は draft 維持。ADR-0005）、マージ後の着地確認と誤マージ復旧、base 付け替え、squash マージ後の追随、diff 不変判定（変更行の比較。ADR-0004）と再ゲート要否・チェック済み失効の判定、コンフリクト境界（自明= AI / 判断あり= 人間）、force-with-lease の例外規定、計画変更時のスタック構成更新、環境要件（git 2.38+、gh 側の要件明記） | AC-2, 5, 6, 8, 9 / QC-1, 3 |
+| **stacked-pr（新設）** | 手順の単一の正: PR 作成（base 指定・ステップ 1 は既定ブランチ）、ステップブランチ命名（`feature/issue-{n}-step{k}-{要約}`。P1 で作った Issue ブランチは P5 のスタック確定時に step1 名へ改名する）、積み替え（`rebase --update-refs`）と積み替え後のテスト再実行（green 確認）、マージ順序の draft ガード（最下段以外は draft 維持。ADR-0005）、マージ後の着地確認と誤マージ復旧、base 付け替え、squash マージ後の追随、積み替え後の変化の記録と、常時再ゲート・チェック済み失効の規則（ADR-0006）、コンフリクト境界（自明= AI / 判断あり= 人間）、force-with-lease の例外規定、計画変更時のスタック構成更新、環境要件（git 2.38+、gh 側の要件明記） | AC-2, 5, 6, 8, 9 / QC-1, 3 |
 | implementation-plan | 複数ステップ計画の承認時にスタック構成（ステップ = 1 PR の境界・順序）を対話で確定。計画全体を Issue コメントへ、最下段 PR は自ステップ分の説明で作成（ADR-0003 論点 4） | AC-1 |
 | tdd-cycle / dev（自動進行） | ステップ完了（TDD = テスト green / DIRECT = 検証手順完了）で `stacked-pr` を参照して PR 作成、次ステップへ先行着手。下位 PR への指摘が設計判断（P3/P4 再入）を要するときは先行積みを中断 | AC-2, 3 |
 | critical-gate | 適用単位 = PR の差分ごと。再ゲート要否は `stacked-pr` の判定に従う | AC-4, 9 |
@@ -40,8 +40,8 @@ stacked PR（積み上げ式 PR）運用の規則・手順を、どの skill が
 
 1. **P5**: 計画承認 → スタック構成確定 → 計画全体を Issue コメント → 最下段 PR（draft）作成
 2. **P6（ステップごとの繰り返し）**: 実装 → ステップ完了 → そのステップの PR を前ステップ base で作成 → PR 差分の critical-gate → 人間チェック依頼 → 待たずに次ステップへ着手（その PR はステップ完了時に作る）
-3. **随時（下位に指摘対応）**: 下位を修正 → `rebase --update-refs` で一括積み替え → 変更行の比較で各上位 PR の diff 不変を判定 → 変わった PR はゲート・チェック済みを失効させ再ゲートへ、不変の PR はテスト再実行（green 確認）のみ
-4. **随時（チェック済み最下段のマージ)**: マージ → 既定ブランチへの着地確認 → 次 PR の base を既定ブランチへ付け替え → マージ済みブランチを削除 → squash 時はマージ済み差分を rebase で落とす → 3. と同じ判定 → **判定が済んでから** ready 化
+3. **随時（下位に指摘対応）**: 下位を修正 → `rebase --update-refs` で一括積み替え → 変化を記録 → **積み替えた全 PR** のゲート・チェック済みを失効させ再ゲート + そのステップの検証再実行
+4. **随時（チェック済み最下段のマージ)**: マージ → 既定ブランチへの着地確認 → 次 PR の base を既定ブランチへ付け替え → マージ済みブランチを削除 → squash 時はマージ済み差分を rebase で落とす → 3. と同じ再ゲート → **再ゲートと再チェックが済んでから** ready 化
 5. **最終 PR**: 全 PR の AC⇄テスト対応表を集約し、マージ前に Issue 全 AC⇄テストの横断確認。漏れはマージ済み分を含め追加修正 PR（前方修正）。context-snapshot・昇格判定もここで実施
 
 ## 例外・境界
