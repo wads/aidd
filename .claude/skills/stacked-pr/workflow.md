@@ -37,7 +37,7 @@ git branch -m feature/issue-{n}-{要約} feature/issue-{n}-step1-{要約}
 git switch -c feature/issue-{n}-step1-{要約} {既定ブランチ}
 # ... 実装 ...
 git push -u origin feature/issue-{n}-step1-{要約}     # push してから PR を作る
-gh pr create --draft --base main \
+gh pr create --draft --base {既定ブランチ} \
   --title "{Issue番号}: step1 {要約}" --body-file {説明を書いたファイルのパス}
 
 # step k >= 2: base は前ステップのブランチ
@@ -166,6 +166,12 @@ critical-gate（PR 差分）通過後:
 
 - 人間チェック完了 = マージしてよい合図。ただし**マージできるのは最下段（base が既定ブランチ）の PR のみ**。チェック済みでも下位が未マージなら、下位のマージを待つ（上位は draft のままなので、マージボタン自体が押せない）
 - マージ直前に契約チェック（`review/acceptance.md` §7 相当）を通す
+
+```bash
+gh pr merge {PR番号} --squash    # repo のマージ方式に合わせる（--merge / --rebase）
+```
+
+> **`--delete-branch` を付けないこと**。マージと同時にブランチが消えると、そのブランチを base にしている上位 PR が CLOSED になる（§7-2）。ブランチの削除は base 付け替えの**後**に行う。同じ理由で、repo 設定の «Automatically delete head branches» はスタック運用中は**無効**にしておく（有効なままだと毎回 §7-3 (a) の復旧が必要になる）。
 - マージ後は §7 へ（**着地確認 → base 付け替え → ブランチ削除**の順。付け替え前に削除すると上位 PR が閉じる）
 
 > **補足（CI 設定への影響）**: 上位 PR が draft のままになるため、`types: [ready_for_review]` などで draft をスキップする CI 設定の repo では、上位ステップの CI が最下段になるまで走らない。その場合は CI を draft でも走る設定にするか、ローカルでのテスト実行（§5）で代替する。
@@ -196,9 +202,14 @@ git merge-base --is-ancestor "$sha" origin/{既定ブランチ} && echo "着地O
 
 **必ず「付け替え → 削除」の順で行う。順序を逆にすると PR が壊れる**: base にしているブランチが先に消えると、GitHub はその PR を **CLOSED にする**。閉じた PR は base を変更できず（`Cannot change the base branch of a closed pull request`）、base ブランチが無いので reopen もできない。復旧には消したブランチを push で復元する必要がある。
 
+**前提**: マージ時にブランチが自動削除されていないこと（§6 の警告を参照）。削除済みなら §7-3 (a) の復旧へ。
+
 ```bash
+# 0) 積み替えに使う旧 step1 の tip を控える（ローカルブランチが残っていても名前依存にしない）
+git rev-parse feature/issue-{n}-step1-{要約}
+
 # 1) 上位 PR の base を既定ブランチへ付け替え（自動で付け替わっていた場合は確認のみ）
-gh pr edit {step2のPR番号} --base main
+gh pr edit {step2のPR番号} --base {既定ブランチ}
 
 # 2) 付け替わったことを確認してから、マージ済みブランチを削除する
 gh pr view {step2のPR番号} --json baseRefName -q .baseRefName   # → 既定ブランチ名であること
@@ -210,6 +221,8 @@ git rebase --onto origin/main {旧 step1 の tip（最新コミット）の SHA}
 git push --force-with-lease origin feature/issue-{n}-step2-{要約} feature/issue-{n}-step3-{要約}
 
 # 4) §4 の判定 → §5 を済ませる（付け替えで差分が変わっていないことの確認）
+#    このケースの引数: 旧base = 手順 0 で控えた旧 step1 の tip、新base = origin/{既定ブランチ}
+#    （旧head / 新head は当該 PR のブランチの積み替え前後の位置）
 
 # 5) 判定が済んでから ready 化（§6 の draft ガードを解除するのはここだけ）
 gh pr ready {step2のPR番号}

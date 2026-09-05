@@ -15,7 +15,7 @@ user-invocable: true
 
 - git 2.38 以上（`rebase --update-refs` を使うため。`git --version` で確認）
 - bash または zsh（§4 の判定でプロセス置換 `<(…)` を使う）
-- gh CLI（`gh pr create` / `edit --base` / `ready` / `view --json mergeCommit` / `comment` が使えること。**必要な最低バージョンは未確認** — 手順が動かない場合はまず `gh --version` の更新を試す）
+- gh CLI（`gh pr create` / `edit --base` / `ready` / `merge` / `view --json mergeCommit` / `comment` が使えること。**必要な最低バージョンは未確認** — 手順が動かない場合はまず `gh --version` の更新を試す）
 
 ## 入力
 
@@ -37,6 +37,7 @@ user-invocable: true
 - マージできるのはスタック最下段（base が既定ブランチ）の PR のみ。チェック済みでも下位が未マージなら待つ
 - **最下段以外は draft のまま保つ**（ready 化は最下段になったときだけ）。GitHub は base がトピックブランチの PR でもマージボタンを有効にするため、順序制約を文章で伝えるだけでは守られない。draft はマージがブロックされ、レビュー・コメントは可能なので、順序制約の機械的ガードになる（ADR-0005）
 - 積み替えで diff 内容が変わった PR は「ゲート通過済み・チェック済み」が失効する。diff 不変でもテスト再実行（green 確認）は必須
+- マージ時にブランチを自動削除しない（`--delete-branch` を使わない・repo 設定の «Automatically delete head branches» を無効にする）。base ブランチが先に消えると上位 PR が閉じる
 - 積み替えは履歴の書き換えを伴う。`git push --force-with-lease` は**自分専用のステップブランチに限り**承認不要とする（共有ブランチへの force push 禁止は従来どおり）
 
 ## 読むべき補助ファイル
