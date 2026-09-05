@@ -33,19 +33,34 @@ git branch -m feature/issue-{n}-{要約} feature/issue-{n}-step1-{要約}
 - DIRECT ステップ: 計画に書いた検証手順が完了した時点
 
 ```bash
-# step1（base は既定ブランチ）
-gh pr create --draft --base main --title "{Issue番号}: step1 {要約}" --body-file {自ステップ分の説明}
-# step k >= 2（base は前ステップのブランチ）
+# step1: P1 のブランチを改名して使う（上記）。新規に切る場合は既定ブランチから
+git switch -c feature/issue-{n}-step1-{要約} main
+# ... 実装 ...
+git push -u origin feature/issue-{n}-step1-{要約}     # push してから PR を作る
+gh pr create --draft --base main \
+  --title "{Issue番号}: step1 {要約}" --body-file {説明を書いたファイルのパス}
+
+# step k >= 2: base は前ステップのブランチ
 git switch -c feature/issue-{n}-step{k}-{要約} feature/issue-{n}-step{k-1}-{要約}
 # ... 実装 ...
-gh pr create --draft --base feature/issue-{n}-step{k-1}-{要約} --title "{Issue番号}: step{k} {要約}" --body-file {説明}
+git push -u origin feature/issue-{n}-step{k}-{要約}
+gh pr create --draft --base feature/issue-{n}-step{k-1}-{要約} \
+  --title "{Issue番号}: step{k} {要約}" --body-file {説明を書いたファイルのパス}
 ```
+
+- **PR 作成前に必ず push する**（未 push だと `gh pr create` が対話プロンプトを出し、非対話実行では止まる）
+- `--body-file` に渡すのは**説明本文を書いたファイルのパス**。作業ツリー外（一時ディレクトリ）に置き、repo にはコミットしない
+- タイトルの Issue 番号は `#` を付けない（例: `42: step1 一覧の取得`。既存の PR タイトル規約に合わせる）
 
 ### PR 説明の内容
 
 - **冒頭にスタック位置とマージ可否を明記する**（人間がマージ画面で最初に見る情報）:
 
   ```md
+  <!-- 最下段（base が既定ブランチ） -->
+  > **PR 1/4**・base = `main`・**マージ可**
+
+  <!-- 上位 -->
   > **PR 2/4**・base = `feature/issue-42-step1-...`・**#109 のマージまでマージ不可**
   ```
 
@@ -63,8 +78,10 @@ gh pr create --draft --base feature/issue-{n}-step{k-1}-{要約} --title "{Issue
 下位（例: step1）に指摘対応コミットが入ったら、上位の鎖を新しい step1 の上へ載せ替える。
 
 ```bash
-# 0) 判定用に、積み替え前の各ブランチ位置を記録しておく
-git rev-parse feature/issue-{n}-step2-{要約} feature/issue-{n}-step3-{要約}  # 旧位置を控える
+# 0) 判定用に、積み替え前の全ブランチ位置を記録しておく（修正コミットを積む前に）
+#    上位ブランチだけでなく、修正する下位ブランチ自身の旧 tip も控える。
+#    §4 の判定で「各 PR の旧 base」として必要になり、修正後は名前で参照できなくなるため
+git rev-parse feature/issue-{n}-step1-{要約} feature/issue-{n}-step2-{要約} feature/issue-{n}-step3-{要約}
 
 # 1) 最上段ブランチで一括積み替え（途中ブランチの先頭も自動で付け替わる）
 git switch feature/issue-{n}-step3-{要約}
@@ -110,7 +127,9 @@ git range-diff {旧base}..{旧head} {新base}..{新head}
 
 critical-gate（PR 差分）通過後:
 
-1. **draft のままチェックを依頼する**（ready 化しない）。draft でもレビュー・コメントはできる。ready 化は §7 でその PR が最下段になったときだけ行う
+1. **その PR が最下段（base が既定ブランチ）かどうかで分ける**
+   - 最下段（step1、および §7 で最下段になった PR）: マージできる状態にするため `gh pr ready {PR番号}` で ready 化してから依頼する
+   - 上位: **draft のまま依頼する**。draft でもレビュー・コメントはできる。ready 化は §7 でその PR が最下段になったときに行う
 2. PR コメントでチェックを依頼する。含めるもの:
    - **今マージしてよいか**（`マージ可` / `#{下位PR番号} のマージ待ち`）。人間が最初に必要とする情報なので先頭に置く
    - 対象ステップと AC、見てほしい観点
@@ -136,36 +155,44 @@ critical-gate（PR 差分）通過後:
 # 1) マージ先が既定ブランチだったか
 gh pr view {マージしたPR番号} --json baseRefName -q .baseRefName   # → 既定ブランチ名であること
 
-# 2) 変更が既定ブランチに実際に含まれるか（ブランチ削除前に実行する）
+# 2) マージで生まれたコミットが既定ブランチに含まれるか
 git fetch origin
-git log --oneline origin/{既定ブランチ}..origin/{マージしたブランチ}   # → 空であること
+sha=$(gh pr view {マージしたPR番号} --json mergeCommit -q .mergeCommit.oid)
+git merge-base --is-ancestor "$sha" origin/{既定ブランチ} && echo "着地OK"
 ```
 
 いずれかが期待と違えば、付け替えへ進まず §7-3 の復旧へ。
 
-### 7-2. ブランチ削除と付け替え
+> **`git log origin/{既定}..origin/{ブランチ}` で判定しないこと**: squash マージはコミット ID が変わるため、正しく着地していてもこの範囲は空にならない。squash 運用の repo では毎回誤検知して §7-3 へ迷い込む。上記の `mergeCommit` の祖先判定は squash・merge commit のどちらでも正しく判定できる。
 
-着地確認が通ってからブランチを削除する。**削除は後回しにしない**: GitHub は base ブランチの削除を契機に、それを base にしていた PR の base を自動で付け替える。残したままだと自動付け替えが働かず、上位 PR の base が消えたブランチを指し続ける。
+### 7-2. base 付け替えとブランチ削除
+
+**必ず「付け替え → 削除」の順で行う。順序を逆にすると PR が壊れる**: base にしているブランチが先に消えると、GitHub はその PR を **CLOSED にする**。閉じた PR は base を変更できず（`Cannot change the base branch of a closed pull request`）、base ブランチが無いので reopen もできない。復旧には消したブランチを push で復元する必要がある。
 
 ```bash
-# 1) マージ済みブランチを削除（自動付け替えの契機）
-git push origin --delete feature/issue-{n}-step1-{要約}
-
-# 2) base を既定ブランチへ付け替え（GitHub が自動で付け替えた場合は確認のみ）
+# 1) 上位 PR の base を既定ブランチへ付け替え（自動で付け替わっていた場合は確認のみ）
 gh pr edit {step2のPR番号} --base main
+
+# 2) 付け替わったことを確認してから、マージ済みブランチを削除する
+gh pr view {step2のPR番号} --json baseRefName -q .baseRefName   # → 既定ブランチ名であること
+git push origin --delete feature/issue-{n}-step1-{要約}
 
 # 3) 既定ブランチの最新を取り込み、マージ済み差分をブランチから落とす
 git switch feature/issue-{n}-step3-{要約}   # 最上段で一括
-git rebase --onto origin/main {旧step1の先頭コミット} --update-refs
+git rebase --onto origin/main {旧 step1 の tip（最新コミット）の SHA} --update-refs
 git push --force-with-lease origin feature/issue-{n}-step2-{要約} feature/issue-{n}-step3-{要約}
 
 # 4) 新しく最下段になった PR を ready 化（§6 の draft ガードを解除するのはここだけ）
 gh pr ready {step2のPR番号}
 ```
 
+- `--onto` に渡すのは旧 step1 の **tip（最新コミット）** であり、最古のコミットではない。最古を渡すと step1 自身のコミットが既定ブランチの上に再生され、マージ済みの変更が重複する
+- GitHub には「base ブランチが削除されたとき、それを base にしていた PR を自動で付け替える」挙動があるが、**マージ後に `git push --delete` で消す運用では発火しないことがある**（発火を前提にせず、上記のとおり自分で付け替える）
+
 - **merge commit 運用の repo**: 通常は `git rebase origin/main --update-refs` で足りる（マージ済みコミットはパッチ同一で自動スキップされる）
 - **squash マージ運用の repo**: 上記のとおり `--onto` で旧コミット列を明示的に落とす（squash はコミット ID が変わるため自動スキップが効かず、放置すると step2 の diff に step1 の差分が混ざって見える）
 - 付け替え後は §4 の判定 → §5 へ（機械的付け替えなら不変になるのが通常）
+- **最上段（最後の PR）をマージしたら**、着地確認（§7-1）のうえでそのブランチを削除して終了する。付け替える上位はもう無い
 
 ### 7-3. 誤マージからの復旧（上位 PR を下位ブランチへマージしてしまったとき）
 
@@ -190,5 +217,6 @@ gh pr ready {step2のPR番号}
 ## 注意事項
 
 - 操作前に `git status` で作業ツリーが clean であることを確認する（積み替えは未コミット差分と共存できない）
+- **確認はローカルの git で行う**。force-push 直後の `gh pr diff` は数秒〜十数秒、積み替え前の差分を返すことがある。GitHub 側のビューだけで判断しない
 - 積み替え・付け替えの操作履歴（実行コマンドと結果）は該当 PR のコメントに残す。障害時の巻き戻しは記録した旧位置（§3 の rev-parse）を使う
 - この手順で解決できない状態（積み替えの連鎖失敗など）に陥ったら、無理に作り込まず人間へエスカレーションする
