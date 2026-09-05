@@ -62,6 +62,7 @@ aidd の不変条件「軽さ」を優先し、利用先 repo に追加のツー
 - `git rebase --update-refs` のため git 2.38+（2022-10）が環境要件になる（QC-3 で明記）
 - squash 運用の repo では下位マージのたびに積み替えが必須になる（案 5a の帰結）
 - 積み替えのたびに各ブランチへ `git push --force-with-lease` が必要になる。トピックブランチ（自分専用）に限る例外として手順書に明記する
+- **マージ時にブランチを自動削除しない運用が前提になる**（`--delete-branch` を使わない・repo 設定 «Automatically delete head branches» を無効にする）。base 付け替えより先にブランチが消えると上位 PR が CLOSED になるため。有効なままでも `stacked-pr` §7-3 (a) で復旧できるので必須ではなく推奨（2026-09-05 追記: P7 ゲートの指摘による）
 
 ## 影響範囲
 
