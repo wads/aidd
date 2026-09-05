@@ -33,10 +33,11 @@ git branch -m feature/issue-{n}-{要約} feature/issue-{n}-step1-{要約}
   - DIRECT ステップ: 計画に書いた検証手順が完了した時点
 
 ```bash
-# step1: 通常は P1 のブランチを改名して使い（上記）、P5 の時点で PR を作る。
+# step1: P5 実装計画の時点で作る（実装の前）。通常は P1 のブランチを改名して使い、
 #        新規に切る場合のみ既定ブランチから
 git switch -c feature/issue-{n}-step1-{要約} {既定ブランチ}
-# コミットが無いと PR を作れない。無ければ空コミット: git commit --allow-empty -m "chore: Issue #{n} 着手"
+# コミットが無いと PR を作れない。無ければ空コミット:
+git commit --allow-empty -m "chore: Issue #{n} 着手"
 git push -u origin feature/issue-{n}-step1-{要約}     # push してから PR を作る
 gh pr create --draft --base {既定ブランチ} \
   --title "{Issue番号}: step1 {要約}" --body-file {説明を書いたファイルのパス}
@@ -119,8 +120,8 @@ git push --force-with-lease origin \
 積み替えの前後で各 PR の diff 内容が変わったかを判定する。**判定に使うのは変更行（追加・削除された行）だけ**で、コンテキスト行の差は無視する。
 
 ```bash
-# 変更行に加え、rename・mode・バイナリ・末尾改行の変化も拾うパターン
-PAT='^([-+]|rename (from|to) |old mode |new mode |Binary files |\\ No newline)'
+# ファイル境界・変更行に加え、rename・mode・バイナリ・末尾改行の変化も拾うパターン
+PAT='^(diff --git |[-+]|rename (from|to) |old mode |new mode |Binary files |\\ No newline)'
 
 # PR ごとに: 旧コミット列（§3-0 で控えた旧位置） vs 新コミット列
 diff <(git diff {旧base}..{旧head} | grep -E "$PAT") \
@@ -138,7 +139,13 @@ git diff --name-only {その PR の base}..{その PR のブランチ}   # そ�
 
 （`gh pr diff` は force-push 直後に古い差分を返すことがあるため、ローカルで確認する。注意事項を参照）
 
-このパターンは変更行とファイル名ヘッダ（`--- a/…` / `+++ b/…`）を残し、コンテキスト行と hunk ヘッダを落とす。`[-+]` だけでは rename 先の変更・file mode 変更・バイナリ差分・末尾改行の有無が**すべて「不変」と誤判定される**（実測で確認済み）ため、それらのマーカー行を明示的に含める。
+このパターンは変更行とファイル境界（`diff --git` / `--- a/…` / `+++ b/…`）を残し、コンテキスト行と hunk ヘッダを落とす。`[-+]` だけでは rename 先の変更・file mode 変更・末尾改行の有無・別ファイルの mode 変更・空ファイルの作成が**「不変」と誤判定される**（実測で確認済み）ため、マーカー行とファイル境界を明示的に含める。
+
+> **バイナリファイルは判定できない（fail-closed で扱う）**: `git diff` はバイナリの差分を `Binary files a/… and b/… differ` としか出力せず、**内容が変わっても行が同一になる**（実測で確認済み）。したがって**差分にバイナリファイルが含まれる PR は、この判定の結果によらず「内容が変わった」として扱い、§5 の再ゲートを行う**。
+>
+> ```bash
+> git diff --numstat {新base}..{新head} | awk '$1=="-"{print $3}'   # 出力があればバイナリを含む
+> ```
 
 > **残る限界**: この判定は位置情報を持たないため、**同じ行が同一ファイルの別位置に移動しただけの変化**は「不変」と出る（コンフリクト解消で起こりうる）。これは §5 の検証再実行で捕捉する前提とする（ADR-0004 のトレードオフ）。
 
@@ -176,6 +183,7 @@ critical-gate（PR 差分）通過後:
 
 ```bash
 gh pr merge {PR番号} --squash    # repo のマージ方式に合わせる（--merge / --rebase）
+gh pr view {PR番号} --json state -q .state   # → MERGED（merge コマンドは無出力なので確認する）
 ```
 
 > **`--delete-branch` を付けないこと**。マージと同時にブランチが消えると、そのブランチを base にしている上位 PR が CLOSED になる（§7-2）。ブランチの削除は base 付け替えの**後**に行う。同じ理由で、repo 設定の «Automatically delete head branches» はスタック運用中は**無効**にしておく（有効なままだと毎回 §7-3 (a) の復旧が必要になる）。
@@ -236,13 +244,13 @@ gh pr ready {step2のPR番号}
 ```
 
 - **ready 化は §4 の判定と §5 の処理を終えてから行う**。判定前に ready にすると、失効しているかもしれない PR がマージ可能な状態で放置される
-- 付け替えた PR の説明冒頭のヘッダ（§1）を更新する（`PR 2/4・base = main・**マージ可**`）。最も参照される情報なので、昇格のたびに直す
+- 付け替えた PR の説明冒頭のヘッダ（§1）を更新する（`PR 2/4・base = {既定ブランチ}・**マージ可**`）。最も参照される情報なので、昇格のたびに直す
 
 - `--onto` に渡すのは旧 step1 の **tip（最新コミット）** であり、最古のコミットではない。最古を渡すと step1 自身のコミットが既定ブランチの上に再生され、マージ済みの変更が重複する
 - GitHub には「base ブランチが削除されたとき、それを base にしていた PR を自動で付け替える」挙動があるが、**マージ後に `git push --delete` で消す運用では発火しないことがある**（発火を前提にせず、上記のとおり自分で付け替える）
 
 - **コミット ID が変わる方式（squash / rebase マージ）**: 上記のとおり `--onto` で旧コミット列を明示的に落とす。ID が変わるためパッチ同一による自動スキップが効かず、放置すると step2 の diff に step1 の差分が混ざって見える
-- **merge commit 運用の repo**: 通常は `git rebase origin/main --update-refs` で足りる（マージ済みコミットはパッチ同一で自動スキップされる）。※この分岐は未検証（QC-1 は squash 運用でのみ実施）
+- **merge commit 運用の repo**: 通常は `git rebase origin/{既定ブランチ} --update-refs` で足りる（マージ済みコミットはパッチ同一で自動スキップされる）。※この分岐は未検証（QC-1 は squash 運用でのみ実施）
 - 付け替え後の判定は上記手順 4 に組み込んでいる（機械的付け替えなら不変になるのが通常）
 - **最上段（最後の PR）をマージしたら**、着地確認（§7-1）のうえでそのブランチを削除して終了する。付け替える上位はもう無い
 

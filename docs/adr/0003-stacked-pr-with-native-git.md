@@ -73,3 +73,4 @@ aidd の不変条件「軽さ」を優先し、利用先 repo に追加のツー
 
 - Issue: wads/aidd#18
 - 置き換える ADR: なし
+- 論点 3 を置き換えた ADR: [ADR-0004](0004-diff-unchanged-by-changed-lines.md)（Superseded in part）

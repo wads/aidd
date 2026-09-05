@@ -1,3 +1,10 @@
+---
+type: design
+scope: all
+status: accepted
+updated: 2026-09-05
+---
+
 # 設計書: stacked PR 運用の責務配置
 
 - Status: Accepted（2026-09-04 人間承認。P5 軽量ゲート・P7 ゲートの指摘反映を随時追記）
@@ -39,7 +46,8 @@ stacked PR（積み上げ式 PR）運用の規則・手順を、どの skill が
 
 ## 例外・境界
 
-- ステップが 1 つの Issue はスタック運用に入らない（従来どおり 1 PR。`stacked-pr` への参照も発生しない）
+- スタック運用の適用条件は「P5 実装計画を実施するルート（feature / refactoring）で、ステップが 2 つ以上あり、各ステップが独立にレビュー・マージできる」こと（`dev/routes.md`・`implementation-plan/workflow.md` §3）。P5 を通らないルート（chore / hotfix / spike）と bugfix の簡易計画は、ステップ数によらず従来どおり 1 PR
+- スタックにしない Issue では `stacked-pr` への参照も発生しない
 - 積み替え未完了の上位 PR は人間チェックに出さない（AC-5）
 - コンフリクトの「自明 / 判断あり」境界と設計判断指摘の判定目安は `stacked-pr` 本文で具体化（P2 持ち越し事項）
 
