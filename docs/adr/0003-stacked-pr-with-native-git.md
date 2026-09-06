@@ -1,7 +1,7 @@
 ---
 type: adr
 scope: all
-status: accepted
+status: superseded
 updated: 2026-09-05
 ---
 
@@ -9,7 +9,9 @@ updated: 2026-09-05
 
 ## ステータス
 
-承認済み（2026-09-04、Issue #18 の P3 技術判断）
+**廃止（2026-09-06）。[ADR-0007](0007-adopt-github-native-stacked-prs.md) に置き換えられた**（機構を GitHub ネイティブ機能に委ねる）。以下は当時の記録。
+
+承認済みだった時点: 2026-09-04、Issue #18 の P3 技術判断
 
 ## 背景
 
@@ -73,4 +75,5 @@ aidd の不変条件「軽さ」を優先し、利用先 repo に追加のツー
 
 - Issue: wads/aidd#18
 - 置き換える ADR: なし
+- この ADR を置き換えた ADR: [ADR-0007](0007-adopt-github-native-stacked-prs.md)
 - 論点 3 を置き換えた ADR: [ADR-0004](0004-diff-unchanged-by-changed-lines.md) → [ADR-0006](0006-always-regate-after-restack.md)（判定を廃止。0004 は superseded）

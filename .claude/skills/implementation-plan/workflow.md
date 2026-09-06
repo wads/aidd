@@ -31,7 +31,7 @@
 - 積む順序と base 関係（step{k} の base は step{k-1}。step1 の base は既定ブランチ）
 - 人間チェックを挟む位置
 
-次のいずれかに当たる計画はスタックにしない（従来どおり 1 PR）: ステップが 1 つ、各ステップが独立にマージできない、P5 実装計画を通らないルート（chore / hotfix / spike）、bugfix の簡易計画（`dev/routes.md`）。手順は `stacked-pr` skill を参照する（この skill は構成の合意までを担い、PR の作成・積み替え・マージ追随の手順は持たない）。
+次のいずれかに当たる計画はスタックにしない（従来どおり 1 PR）: ステップが 1 つ、各ステップが独立にマージできない、P5 実装計画を通らないルート（chore / hotfix / spike）、bugfix の簡易計画（`dev/routes.md`）。手順は `stacked-pr` skill を参照する（この skill は構成の合意までを担う）。スタックの機構は GitHub ネイティブ機能（`gh stack`）が持つため、**その環境要件（gh 2.90.0 以降と `github/gh-stack` 拡張）を満たせない場合もスタックにしない**。
 
 ## 4. 承認と記録
 
