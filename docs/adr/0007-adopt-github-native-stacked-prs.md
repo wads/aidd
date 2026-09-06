@@ -15,7 +15,12 @@ updated: 2026-09-06
 
 ADR-0003 では、stacked PR の運用を git 標準機能（`rebase --update-refs` ほか）と gh で自作すると決めた。当時 Graphite を棄却した理由は「外部サービスのアカウントと GitHub App 連携が必要」だった。
 
-その後、**GitHub が stacked PR をネイティブ機能としてパブリックプレビューで提供している**ことが判明した（`gh extension install github/gh-stack` による `gh stack` コマンド群）。GitHub 公式の CLI 拡張であり、外部サービスへの連携は不要なので、ADR-0003 が Graphite を棄却した理由は当てはまらない。
+その後、**GitHub が stacked PR をネイティブ機能としてパブリックプレビューで提供している**ことが判明した。GitHub 公式であり外部サービスへの連携は不要なので、ADR-0003 が Graphite を棄却した理由は当てはまらない。提供物は 2 つある。
+
+- `gh extension install github/gh-stack`: CLI 拡張（機能本体）
+- `gh skill install github/gh-stack`: **AI コーディングエージェント向けの公式 skill**（操作手順・非対話フラグ・exit code 体系・コンフリクト復旧・トラブルシューティングを含む）
+
+後者の存在は決定的である。aidd は AI 駆動開発の playbook であり、エージェントが読む手順書を自作するのではなく、GitHub 公式のものを参照すればよい。
 
 自作路線には、この Issue の実装過程で明らかになった構造的な弱点がある。
 
@@ -34,6 +39,7 @@ ADR-0003 では、stacked PR の運用を git 標準機能（`rebase --update-re
   - マージ順序がサーバー側で強制される（ミッドスタックの単独マージが不可）。ADR-0005 の draft ガードを自前で持つ必要がなくなる
   - ブランチ保護・CODEOWNERS・必要なレビューがスタック内の全 PR に自動適用される
   - 手順書が大幅に短くなり、aidd が本来持つべきプロセスの記述に集中できる
+  - **操作手順そのものを公式 skill に委譲できる**。aidd 側はコマンドを一切持たず、プロセス規則だけを持てる
   - GitHub 自身が「大量のコードを生成する場合（開発者または Copilot / AI エージェント利用時）」を向くケースとして挙げており、aidd の想定と一致する
 - デメリット:
   - **パブリックプレビュー**であり仕様変更の可能性がある
@@ -53,7 +59,14 @@ ADR-0003 では、stacked PR の運用を git 標準機能（`rebase --update-re
 
 ## 決定内容
 
-stacked PR の機構は `gh stack`（GitHub ネイティブ機能）に委ねる。生の git コマンドによる積み替え・base 付け替えは行わない。
+stacked PR の機構は `gh stack`（GitHub ネイティブ機能）に委ね、**操作手順は公式の `gh-stack` skill を単一の正とする**。生の git コマンドによる積み替え・base 付け替えは行わない。aidd の `stacked-pr` skill には `gh stack` のコマンドを書かない（重複させると、公式の更新に追随できず古い記述が残る）。
+
+導入は 2 つとも必要である。
+
+```bash
+gh extension install github/gh-stack     # CLI 拡張（機能本体）
+gh skill install github/gh-stack         # エージェント向け skill（操作手順の正）
+```
 
 `stacked-pr` skill は次のプロセス規則だけを持つ。
 
@@ -69,15 +82,27 @@ stacked PR の機構は `gh stack`（GitHub ネイティブ機能）に委ねる
 
 この Issue で繰り返した失敗の原因は、GitHub の挙動を推測で記述したことにある。機構を公式の実装に委ねれば、その誤りの種類は構造的に発生しなくなる。aidd が価値を持つのは「いつ・誰が・何を確認して次へ進むか」というプロセスの規律であり、git の操作手順ではない。責務をその線で切る。
 
+## 運用上の前提（公式ドキュメント全 15 ページの確認で判明したもの）
+
+これらは aidd の判断に影響するため、`stacked-pr` skill に記載する。
+
+- **マージは非同期**で完了まで数分かかることがある。「コマンドが返った = マージ済み」ではないため、次へ進む前に完了を確認する
+- **ブランチ保護・必須レビュー・状態チェック・CODEOWNERS・スキャンは「スタックベース」（トランク）に対して評価される**（直下の base ではない）。各 PR が独立にレビュー可能という aidd の前提と整合する
+- **CI はスタック内の PR ごとに 1 回走る**。段数だけ使用量が増える。`github.event.pull_request.stack` で重いジョブを絞れる（利用先 repo の CI 設定の責務）
+- **コミット署名が必須の repo では、サーバー側リベースが未署名コミットになる**。ローカルで積み替えれば署名設定に従う
+- **スタックは厳密に線形**（1 親・最大 1 子）。並行作業は別スタックにする
+- **非対話での並べ替え・削除は存在しない**（`gh stack modify` は TUI 専用）。回避策は `unstack` してから `init` で組み直す
+
 ## トレードオフ
 
 - パブリックプレビューへの依存を受け入れる。仕様が変わったら追随する。プロセス層（この skill が持つ規則）は変わらないため、影響は手順の呼び出し方に限られる
+- 公式 skill への依存を受け入れる。手順の正が aidd の外にあるため、その更新を aidd が制御できない。ただし自作して古くなるより、公式が更新される方が望ましい
 - 利用者側に gh 2.90.0 以降と拡張のインストールを要求する。ADR-0003 が掲げた「利用先 repo に設定変更を要求しない」は維持される（repo 側の設定は不要で、クライアント側のツール導入のみ）
 - 自作手順の実装・検証にかけた作業は破棄する。埋没費用を理由に劣った方式を維持しない
 
 ## 影響範囲
 
-- `stacked-pr` skill（全面的な書き直し。約 400 行 → 100 行程度）
+- `stacked-pr` skill（全面的な書き直し。368 行 → 87 行。コマンド手順を公式 skill へ委譲）
 - ADR-0005（draft ガード）: `gh stack` がサーバー側でマージ順序を強制するため不要になる
 - Issue #18 の AC-2・AC-5・AC-6・AC-8（実現手段が変わる。Intent Delta を Issue へ記録）
 - QC-1・QC-3（検証シナリオと環境要件が変わる）
@@ -86,4 +111,10 @@ stacked PR の機構は `gh stack`（GitHub ネイティブ機能）に委ねる
 
 - Issue: wads/aidd#18
 - 置き換える ADR: ADR-0003（および派生の ADR-0005）
-- 公式ドキュメント: [About stacked PRs](https://docs.github.com/ja/pull-requests/get-started/about-stacked-prs)、[gh stack CLI commands](https://docs.github.com/ja/pull-requests/reference/stacked-prs-cli-commands)、[Managing stacked pull requests](https://docs.github.com/ja/pull-requests/how-tos/create-pull-requests/managing-stacked-pull-requests)、[Merging stacked pull requests](https://docs.github.com/ja/pull-requests/how-tos/merge-and-close-pull-requests/merging-stacked-pull-requests)
+- 公式 skill: `github/gh-stack`（`gh skill install github/gh-stack`。SKILL.md + references/{commands,stack-design,troubleshooting}.md）
+- 公式ドキュメント（2026-09-06 時点で確認した全 15 ページ）:
+  - get-started: [about-stacked-prs](https://docs.github.com/ja/pull-requests/get-started/about-stacked-prs)、[stacked-prs-quickstart](https://docs.github.com/ja/pull-requests/get-started/stacked-prs-quickstart)
+  - reference: [stacked-pull-requests](https://docs.github.com/ja/pull-requests/reference/stacked-pull-requests)（仕様）、[stacked-prs-cli-commands](https://docs.github.com/ja/pull-requests/reference/stacked-prs-cli-commands)、[stacked-pull-requests-apis-and-webhooks](https://docs.github.com/ja/pull-requests/reference/stacked-pull-requests-apis-and-webhooks)、[use-other-tools-with-stacked-pull-requests](https://docs.github.com/ja/pull-requests/reference/use-other-tools-with-stacked-pull-requests)
+  - how-tos: [index](https://docs.github.com/ja/pull-requests/how-tos/stacked-pull-requests)、[creating](https://docs.github.com/ja/pull-requests/how-tos/create-pull-requests/creating-stacked-pull-requests)、[managing](https://docs.github.com/ja/pull-requests/how-tos/create-pull-requests/managing-stacked-pull-requests)、[reviewing](https://docs.github.com/ja/pull-requests/how-tos/review-pull-requests/reviewing-stacked-pull-requests)、[merging](https://docs.github.com/ja/pull-requests/how-tos/merge-and-close-pull-requests/merging-stacked-pull-requests)、[troubleshooting](https://docs.github.com/ja/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-stacked-pull-requests)、[optimizing-ci](https://docs.github.com/ja/pull-requests/how-tos/merge-and-close-pull-requests/optimizing-ci-for-stacked-pull-requests)
+  - tutorials: [roll-out-stacked-prs](https://docs.github.com/ja/pull-requests/tutorials/roll-out-stacked-prs)、[stack-ai-generated-code-in-pull-requests](https://docs.github.com/ja/copilot/tutorials/stack-ai-generated-code-in-pull-requests)
+  - 未読（CLI 経由で使うため）: REST 非同期マージ / GraphQL `PullRequestStack` / Webhook ペイロード
