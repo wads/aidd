@@ -2,7 +2,7 @@
 type: adr
 scope: all
 status: superseded
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # [ADR-0003] stacked PR 運用を git 標準機能 + gh で構成する

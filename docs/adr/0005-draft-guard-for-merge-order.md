@@ -2,7 +2,7 @@
 type: adr
 scope: all
 status: superseded
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # [ADR-0005] マージ順序を draft 状態で機械的に強制する

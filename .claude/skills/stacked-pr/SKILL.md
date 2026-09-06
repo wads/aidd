@@ -29,7 +29,7 @@ gh skill install github/gh-stack         # エージェント向け skill（操�
 - **gh 2.90.0 以降** + `github/gh-stack` 拡張 + `github/gh-stack` skill
 - git 2.20 以降
 - 同一リポジトリ内で完結すること（クロスフォークのスタックは非対応）
-- 対象リポジトリで stacked PR が有効になっていること（無効なら `gh stack` は exit 9 を返す）
+- 対象リポジトリで stacked PR が有効になっていること（無効だと `gh stack submit` が exit 9 で失敗する）
 - **GitHub のパブリックプレビュー機能**であり、仕様が変わる可能性がある
 
 **前提を満たさない環境で、その計画にスタックの有用性がある場合は、人間に確認する**。
