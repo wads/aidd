@@ -4,9 +4,8 @@ scope: all
 status: accepted
 updated: 2026-09-07
 topic: [records, tooling]
+summary: 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する
 supersedes: [0001]
-superseded_by: []
-amends: []
 amended_by: [0003]
 ---
 

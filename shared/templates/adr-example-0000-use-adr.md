@@ -4,10 +4,8 @@ scope: all
 status: accepted
 updated: 2026-03-05
 topic: [records]
-supersedes: []
-superseded_by: []
-amends: []
-amended_by: []
+summary: 技術判断を MADR 形式の ADR として 1 決定 1 ファイルで記録する
+considered: []
 ---
 
 # [ADR-0000] Architecture Decision Records を採用する

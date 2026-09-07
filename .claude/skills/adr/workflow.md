@@ -4,8 +4,8 @@
 
 何を決めるのか、なぜ今決める必要があるのかを 1〜2 行で確認する。判断に選択の余地がない（既知のパターンの適用のみ）なら ADR は作らない。
 
-- **同 topic の既存 ADR を読む**: ADR ディレクトリの `INDEX.md` から該当 topic の有効 ADR を引いて読み、この判断がそれらと「置き換え / 補足 / 無関係」のどれに当たるかを宣言する。既存の決定を変えるのに置き換え・補足を宣言しない ADR は、衝突を後から検知できない最大の経路である
-- 語彙表（`README.md`）に合う topic が無ければ、この ADR と同じコミットで語彙表へ追加する
+- **同 topic の既存 ADR を読む**: ADR ディレクトリの `INDEX.md` から該当 topic の有効 ADR を引き、要旨で絞ってから読み、この判断がそれらと「置き換え / 補足 / 無関係」のどれに当たるかを frontmatter に書く（置き換え → `supersedes`、補足・部分修正 → `amends`、無関係 → `considered`）。同 topic で自分より若い番号の有効 ADR が 3 つのどれにも無ければスクリプトが error にする。既存の決定を変えるのに置き換え・補足を宣言しない ADR は、衝突を後から検知できない最大の経路である
+- 語彙表（`{records_root}/domain-terms.md`。ハブは `system/domain-terms.md`）に合う topic が無ければ、この ADR と同じコミットで語彙表へ追加する。語彙表自体が無ければ `shared/templates/domain-terms-template.md` から作り、最初の ADR と同じコミットに含める
 
 ## 2. 選択肢の整理
 
@@ -27,11 +27,11 @@
 ## 5. ADR の記録
 
 - `shared/templates/adr-template.md` に従って書く。1 ページ以内を目安にし、仕様の本文ではなく判断の理由を残す
-- frontmatter（`type: adr` / `scope` / `status` / `updated` / `topic` / `supersedes` / `superseded_by` / `amends` / `amended_by`）を必ず付与する。関係リンクは同じ ADR ディレクトリ内の番号のみを指す
+- frontmatter の必須項目は `type: adr` / `scope` / `status` / `updated` / `topic` / `summary`（要旨一行。INDEX.md に出る）。`supersedes` / `superseded_by` / `amends` / `amended_by` / `considered` は関係があるときだけ書く（空リストの行は書かない）。番号は同じ ADR ディレクトリ内のものだけを指す
 - ファイル名: `{records_root}/adr/{連番}-short-title.md`（連番は 4 桁 0 埋め、ADR ディレクトリ内で独立）。Binding に `service` があっても ADR は分割せず、ハブ構成では `{records_root}/system/adr/` にまとめる。どのサービスの判断かは frontmatter の `scope` に書く
 - 対象 Issue 番号は frontmatter または Issue コメントで紐づける（ファイル名には含めない）
-- 既存 ADR の判断を置き換える場合は、新 ADR の frontmatter に `supersedes: [旧番号]` を書き、旧 ADR の frontmatter に `superseded_by: [新番号]` と `status: superseded` を追記する。補足の場合は `amends` / `amended_by` を同様に双方向で書く。旧 ADR への編集はこの frontmatter 変更のみで、本文には触れない
-- 記録後、および既存 ADR の status を変えた後に `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` を実行して `INDEX.md` を再生成し、error が無いことを確認する（warning は通過を妨げない）。`skipped` が出るのは語彙表も INDEX.md も無い未移行ディレクトリだけで、語彙表 `README.md` を作った時点で移行が始まる
+- 既存 ADR の判断を丸ごと置き換える場合は、新 ADR の frontmatter に `supersedes: [旧番号]` を書き、旧 ADR の frontmatter に `superseded_by: [新番号]` と `status: superseded` を追記する。一部だけ変える場合は `amends` / `amended_by` を同様に双方向で書く（`supersedes` は旧 ADR を丸ごと有効索引から外すので、生き残る決定があるなら `amends`）。旧 ADR への編集はこの frontmatter 変更（と `updated`）のみで、本文の status 欄は記録時点のまま触らない
+- 記録後、既存 ADR の status を変えた後、語彙表を変えた後に、リポジトリルートで `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` を実行して `INDEX.md` を再生成し、error が無いことを確認する（warning は通過を妨げない）。`skipped` が出るのは語彙表も INDEX.md も無い未移行ディレクトリだけで、語彙表を作った時点で移行が始まる。python3 が無い環境は `review/acceptance.md` §7 の第 3 の通過条件に従う
 - 対象の GitHub Issue へリンクをコメントする
 
 ### 着手前に判断が固まった場合（`proposed` で起こす）

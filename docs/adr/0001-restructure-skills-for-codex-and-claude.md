@@ -4,10 +4,8 @@ scope: all
 status: superseded
 updated: 2026-09-04
 topic: [records, tooling]
-supersedes: []
+summary: Claude Code と Codex の併用のため skill を .agents/skills/ に置き command wrapper で参照する（出典 playbook の経緯）
 superseded_by: [0002]
-amends: []
-amended_by: []
 ---
 
 # [ADR-0001] Claude Code と Codex 向けに skill 配置を `.agents/skills/` へ再編する

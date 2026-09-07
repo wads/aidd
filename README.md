@@ -37,7 +37,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 records_root: docs/                 # 既定。コンテキストハブ利用時は例: ../remosys-context/contexts
 issue_repo:   <owner>/<repo>        # 既定は自 repo
 service:      <service-name>        # ハブでサービス別に分ける場合のみ
-aidd_root:    /path/to/aidd       # 上の @ 参照と同じ場所。symlink で取り込んでいれば . （既定）
+aidd_root:    /path/to/aidd       # 上の @ 参照と同じ場所。相対パスはリポジトリルート基準。symlink で取り込む場合は上の @ も ./shared/... にして aidd_root: .（既定）
 
 ## Project Configuration
 - Test command: `npm test`
@@ -70,6 +70,7 @@ Codex を併用する場合は `AGENTS.md` から `shared/rules/common.md` と `
 | `shared/rules/` | 共通ルール（Binding 規約を含む） |
 | `shared/templates/` | 汎用テンプレート |
 | `shared/scripts/` | 補助スクリプト（ADR 索引の生成・照合 `adr_index.py` とそのテスト） |
+| `docs/domain-terms.md` | 用語と判断領域（ADR の topic 語彙表）。利用側は `{records_root}/domain-terms.md` に置く |
 | `docs/` | ADR、設計、チュートリアル、マニュアル |
 
 ## Skills
@@ -112,5 +113,6 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 
 - skill は `.claude/skills/<name>/SKILL.md` に追加する（source of truth、`user-invocable: true`）
 - 共通ルール・Binding 規約は `shared/rules/` に追加する
+- スクリプトのテスト: リポジトリルートで `python3 -m unittest discover -s shared/scripts -p 'test_*.py'`。ADR を変えたら `python3 shared/scripts/adr_index.py docs/adr --check`
 - 記録の置き場所はプロジェクトの `CLAUDE.md` の AIDD Binding で宣言し、全フェーズで一貫させる（フェーズごとに規約を混在させない）
 - playbook 自体の改善は、各プロジェクトの振り返り（P8 振り返り）からこのリポジトリへの PR として還流する

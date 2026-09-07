@@ -28,6 +28,6 @@ aidd_root:    ../aidd
 
 ## Project Configuration
 
-- **Test command**: `python3 -m unittest discover -s shared/scripts -p 'test_*.py'`（利用側プロジェクトでは自プロジェクトのコマンドに置き換える。例: `npm test`, `uv run pytest`, `go test ./...`）
+- **Test command**: `TODO: プロジェクトに応じて設定`（例: `npm test`, `uv run pytest`, `go test ./...`。aidd 自身のスクリプトのテストは README.md「開発」を参照）
 - **Build command**: `TODO: プロジェクトに応じて設定`
 - **Lint command**: `TODO: プロジェクトに応じて設定`

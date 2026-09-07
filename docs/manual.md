@@ -61,7 +61,7 @@ Issue のタイプ（`product-intent` で確定し `type-*` ラベルで管理�
 
 - **AI**: 選択肢・推奨案・トレードオフ・捨てる案を提示する。迷う場合は止めて相談する
 - **あなた**: 何を優先し何を捨てるかを判断する（名前は「技術」だが、方針の決定は PdM が最も強い領域。担当外と考えず関与してよい）
-- **見るもの**: `docs/adr/` に追加される ADR。有効な ADR の一覧は `docs/adr/INDEX.md`、topic の意味は `docs/adr/README.md`
+- **見るもの**: `docs/adr/` に追加される ADR。有効な ADR の一覧は `docs/adr/INDEX.md`、topic の意味は `docs/domain-terms.md`
 
 ### P4 設計（design-docs、判断があるときだけ）
 

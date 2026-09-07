@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """ADR ディレクトリから有効な ADR の索引 INDEX.md を生成し、frontmatter の整合を照合する。
 
-Usage:
-    python3 {aidd_root}/shared/scripts/adr_index.py ADR_DIR [--check]
+Usage（リポジトリルートを cwd にして実行する）:
+    python3 {aidd_root}/shared/scripts/adr_index.py ADR_DIR [--terms PATH] [--check]
 
 ADR_DIR 直下の NNNN-*.md を読む。関係リンク（supersedes 等）は同じ ADR_DIR 内の番号のみを指す。
-topic の語彙表は ADR_DIR/README.md の、見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。
+topic の語彙表は既定で ADR_DIR の親の domain-terms.md（--terms で別の場所を指定可）。語彙表の機械可読部分は、
+見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。
 語彙表も INDEX.md も無いディレクトリを未移行とみなし、警告のみで照合と生成を省略する。
-次は error（skip の抜け道にしない）: ADR_DIR が無い・ディレクトリでない・読めない、語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
+次は error（skip の抜け道にしない）: ADR_DIR が無い・ディレクトリでない・読めない、--terms のパスが無い・読めない、
+語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
-語彙表は README.md の表のうち、見出し行の 1 列目が `topic` の表だけを読む。
+先頭の BOM と空行は無視する。関係リンクの 4 フィールドと considered は関係があるときだけ書けばよい。
 """
 import argparse
 import os
@@ -21,17 +23,23 @@ from dataclasses import dataclass, field
 STATUSES = ("proposed", "accepted", "superseded", "deprecated")
 ACTIVE_STATUSES = ("proposed", "accepted")
 RELATIONS = (("supersedes", "superseded_by"), ("amends", "amended_by"))
+LINK_KEYS = ("supersedes", "superseded_by", "amends", "amended_by", "considered")
+COVERAGE_KEYS = ("supersedes", "amends", "considered")
+REQUIRED_TEXT = ("type", "scope", "updated", "summary")
 SKEW_HIGH = 10
 INDEX_NAME = "INDEX.md"
-VOCAB_NAME = "README.md"
+TERMS_NAME = "domain-terms.md"
+HUMAN_DOCS = ("README.md",)
 
 ADR_FILE = re.compile(r"^(\d{4})-.*\.md$")
 NUMBER = re.compile(r"(\d+)")
+DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TABLE_ROW = re.compile(r"^\|(.*)\|?\s*$")
 VOCAB_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|?\s*$")
 TITLE_PREFIX = re.compile(r"^\s*(?:\[ADR-\d+\]|ADR[- ]?\d+[:.]?|\d{4}\.)\s*")
 COMMENT = re.compile(r"\s+#\s.*$")
 BLOCK_ITEM = re.compile(r"^\s*-\s+(.*)$")
+FENCE = re.compile(r"^\s*(```|~~~)")
 
 
 @dataclass
@@ -39,9 +47,11 @@ class Adr:
     num: str
     filename: str
     title: str
+    fm: dict
     status: str
     topics: list
     links: dict
+    label: str = ""
 
 
 @dataclass
@@ -52,15 +62,22 @@ class Result:
     skipped: bool = False
 
 
-def parse_frontmatter(text):
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return {}
+def split_frontmatter(text):
+    """(frontmatter dict または None, 本文) を返す。BOM と先頭の空行は無視する。"""
+    lines = text.lstrip("﻿").splitlines()
+    start = 0
+    while start < len(lines) and not lines[start].strip():
+        start += 1
+    if start >= len(lines) or lines[start].strip() != "---":
+        return None, lines
     data = {}
     key = None
-    for line in lines[1:]:
+    i = start + 1
+    while i < len(lines):
+        line = lines[i]
+        i += 1
         if line.strip() == "---":
-            break
+            return data, lines[i:]
         line = COMMENT.sub("", line.rstrip())
         if not line.strip():
             continue
@@ -75,7 +92,12 @@ def parse_frontmatter(text):
         raw_key, value = line.split(":", 1)
         key = raw_key.strip()
         data[key] = _parse_value(value.strip())
-    return data
+    return None, lines
+
+
+def parse_frontmatter(text):
+    data, _ = split_frontmatter(text)
+    return data or {}
 
 
 def _unquote(value):
@@ -90,13 +112,30 @@ def _parse_value(value):
     return _unquote(value)
 
 
+def _as_list(value):
+    if value is None or value == "":
+        return []
+    return value if isinstance(value, list) else [value]
+
+
 def normalize_number(value):
     match = NUMBER.search(str(value))
     return f"{int(match.group(1)):04d}" if match else str(value)
 
 
+def find_title(body_lines, fallback):
+    in_fence = False
+    for line in body_lines:
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence and line.startswith("# "):
+            return TITLE_PREFIX.sub("", line[2:].strip())
+    return fallback
+
+
 def load_vocab(path):
-    """README.md の表のうち、見出し行の 1 列目が topic である表の行だけを語彙にする。"""
+    """語彙表の表のうち、見出し行の 1 列目が topic である表の行だけを語彙にする。"""
     vocab = []
     in_topic_table = False
     with open(path, encoding="utf-8") as f:
@@ -122,25 +161,20 @@ def load_adrs(adr_dir):
     for name in sorted(os.listdir(adr_dir)):
         match = ADR_FILE.match(name)
         if not match:
-            if name.endswith(".md") and name not in (INDEX_NAME, VOCAB_NAME):
+            if name.endswith(".md") and name not in (INDEX_NAME,) + HUMAN_DOCS:
                 warnings.append(f"{name}: ファイル名が NNNN-*.md でないため索引の対象外")
             continue
         with open(os.path.join(adr_dir, name), encoding="utf-8") as f:
             text = f.read()
-        fm = parse_frontmatter(text)
-        title = next((l[2:].strip() for l in text.splitlines() if l.startswith("# ")), name)
-        links = {}
-        for fwd, back in RELATIONS:
-            for key in (fwd, back):
-                raw = fm.get(key, [])
-                links[key] = [normalize_number(v) for v in (raw if isinstance(raw, list) else [raw]) if v]
-        topics = fm.get("topic", [])
+        fm, body = split_frontmatter(text)
+        links = {key: [normalize_number(v) for v in _as_list((fm or {}).get(key)) if v] for key in LINK_KEYS}
         adrs.append(Adr(
             num=match.group(1),
             filename=name,
-            title=TITLE_PREFIX.sub("", title),
-            status=str(fm.get("status", "")),
-            topics=topics if isinstance(topics, list) else [topics],
+            title=find_title(body, name),
+            fm=fm,
+            status=str((fm or {}).get("status", "")),
+            topics=_as_list((fm or {}).get("topic")),
             links=links,
         ))
     return adrs, warnings
@@ -149,42 +183,69 @@ def load_adrs(adr_dir):
 def validate(adrs, vocab_names):
     errors, warnings = [], []
     by_num = {}
+    seen = {}
     for a in adrs:
+        seen.setdefault(a.num, []).append(a)
+    for a in adrs:
+        a.label = f"ADR-{a.num} ({a.filename})" if len(seen[a.num]) > 1 else f"ADR-{a.num}"
         if a.num in by_num:
-            errors.append(f"ADR-{a.num}: 連番が重複（{by_num[a.num].filename} と {a.filename}）")
+            errors.append(f"{a.label}: 連番が重複（{by_num[a.num].filename} と {a.filename}）")
         by_num[a.num] = a
     for a in adrs:
+        if a.fm is None:
+            errors.append(f"{a.label}: frontmatter が無い（先頭の `---` … `---` を置く）")
+            continue
+        for key in REQUIRED_TEXT:
+            value = a.fm.get(key)
+            if value in (None, "", []):
+                errors.append(f"{a.label}: {key} が無い")
+        if a.fm.get("type") not in (None, "", "adr"):
+            errors.append(f"{a.label}: type '{a.fm.get('type')}' は不正（adr）")
+        if isinstance(a.fm.get("updated"), str) and a.fm.get("updated") and not DATE.match(a.fm["updated"]):
+            errors.append(f"{a.label}: updated '{a.fm['updated']}' は YYYY-MM-DD でない")
         if a.status not in STATUSES:
-            errors.append(f"ADR-{a.num}: status '{a.status}' は不正（{' / '.join(STATUSES)} のいずれか）")
+            errors.append(f"{a.label}: status '{a.status}' は不正（{' / '.join(STATUSES)} のいずれか）")
         if not a.topics:
-            errors.append(f"ADR-{a.num}: topic が無い")
+            errors.append(f"{a.label}: topic が無い")
         for t in a.topics:
             if t not in vocab_names:
-                errors.append(f"ADR-{a.num}: topic '{t}' は語彙表（{VOCAB_NAME}）に無い")
+                errors.append(f"{a.label}: topic '{t}' は語彙表（{TERMS_NAME}）に無い")
+        for key in LINK_KEYS:
+            if a.num in a.links[key]:
+                errors.append(f"{a.label}: {key} が自分自身を指している")
         for fwd, back in RELATIONS:
             for target in a.links[fwd]:
                 other = by_num.get(target)
                 if other is None:
-                    errors.append(f"ADR-{a.num}: {fwd} の ADR-{target} が存在しない")
-                elif a.num not in other.links[back]:
-                    errors.append(f"ADR-{target}: {back} に {a.num} が無い（ADR-{a.num} が {fwd} を宣言）")
+                    errors.append(f"{a.label}: {fwd} の ADR-{target} が存在しない")
+                elif target != a.num and a.num not in other.links[back]:
+                    errors.append(f"{other.label}: {back} に {a.num} が無い（{a.label} が {fwd} を宣言）")
             for target in a.links[back]:
                 other = by_num.get(target)
                 if other is None:
-                    errors.append(f"ADR-{a.num}: {back} の ADR-{target} が存在しない")
-                elif a.num not in other.links[fwd]:
-                    errors.append(f"ADR-{target}: {fwd} に {a.num} が無い（ADR-{a.num} が {back} を宣言）")
+                    errors.append(f"{a.label}: {back} の ADR-{target} が存在しない")
+                elif target != a.num and a.num not in other.links[fwd]:
+                    errors.append(f"{other.label}: {fwd} に {a.num} が無い（{a.label} が {back} を宣言）")
+        for target in a.links["considered"]:
+            if target not in by_num:
+                errors.append(f"{a.label}: considered の ADR-{target} が存在しない")
         if a.links["superseded_by"] and a.status != "superseded":
-            errors.append(f"ADR-{a.num}: superseded_by があるが status が '{a.status}'（superseded にする）")
+            errors.append(f"{a.label}: superseded_by があるが status が '{a.status}'（superseded にする）")
         if a.status == "superseded" and not a.links["superseded_by"]:
-            errors.append(f"ADR-{a.num}: status が superseded だが superseded_by が空")
+            errors.append(f"{a.label}: status が superseded だが superseded_by が空")
+
+    active = [a for a in adrs if a.fm is not None and a.status in ACTIVE_STATUSES]
+    for a in active:
+        covered = {n for key in COVERAGE_KEYS for n in a.links[key]}
+        for b in active:
+            if b.num < a.num and b.num not in covered and set(a.topics) & set(b.topics):
+                errors.append(f"{a.label}: 同 topic の ADR-{b.num} を読んだ宣言が無い（supersedes / amends / considered のいずれかに書く）")
 
     counts = {}
-    for a in adrs:
-        if a.status in ACTIVE_STATUSES:
-            for t in a.topics:
-                if t in vocab_names:
-                    counts[t] = counts.get(t, 0) + 1
+    for a in active:
+        for t in a.topics:
+            if t in vocab_names:
+                counts[t] = counts.get(t, 0) + 1
     for t, n in counts.items():
         if n > SKEW_HIGH:
             warnings.append(f"topic '{t}' の有効 ADR が {n} 本（{SKEW_HIGH} 本超。分割を検討）")
@@ -195,12 +256,12 @@ def _relations(a):
     return [f"{key} {', '.join(a.links[key])}" for key in ("supersedes", "amends", "amended_by") if a.links[key]]
 
 
-def render(adrs, vocab):
+def render(adrs, vocab, terms_rel):
     lines = [
-        "<!-- generated by shared/scripts/adr_index.py; do not edit. Regenerate: python3 {aidd_root}/shared/scripts/adr_index.py <adr_dir> -->",
+        "<!-- generated by adr_index.py; do not edit. Regenerate: python3 <aidd_root>/shared/scripts/adr_index.py <adr_dir>（shared/rules/common.md 参照） -->",
         "# ADR 索引（有効な決定）",
         "",
-        f"有効 = status が {' / '.join(ACTIVE_STATUSES)}。topic の意味は語彙表（{VOCAB_NAME}）を参照。失効した ADR は末尾に置く。",
+        f"有効 = status が {' / '.join(ACTIVE_STATUSES)}。topic の意味は語彙表（{terms_rel}）を参照。失効した ADR は末尾に置く。",
     ]
     active = [a for a in adrs if a.status in ACTIVE_STATUSES]
     for name, desc in vocab:
@@ -209,7 +270,11 @@ def render(adrs, vocab):
             continue
         lines += ["", f"## {name} · {desc}" if desc else f"## {name}", ""]
         for a in members:
-            lines.append(f"- [ADR-{a.num} {a.title}]({a.filename}) · {a.status}" + "".join(f" · {p}" for p in _relations(a)))
+            summary = str(a.fm.get("summary", "")).strip()
+            lines.append(
+                f"- [ADR-{a.num} {a.title}]({a.filename}): {summary} · {a.status}"
+                + "".join(f" · {p}" for p in _relations(a))
+            )
     retired = [a for a in adrs if a.status not in ACTIVE_STATUSES]
     if retired:
         lines += ["", "## 失効", ""]
@@ -219,32 +284,36 @@ def render(adrs, vocab):
     return "\n".join(lines) + "\n"
 
 
-def run(adr_dir, write=False):
+def run(adr_dir, terms=None, write=False):
     result = Result()
     if not os.path.isdir(adr_dir):
         what = "ディレクトリではない" if os.path.exists(adr_dir) else "存在しない"
-        result.errors.append(f"ADR ディレクトリ {adr_dir} が{what}（パスと cwd を確認する）")
+        result.errors.append(f"ADR ディレクトリ {adr_dir} が{what}（リポジトリルートを cwd にしてパスを確認する）")
         return result
     try:
         entries = set(os.listdir(adr_dir))
     except OSError as e:
         result.errors.append(f"ADR ディレクトリ {adr_dir} を読めない（{e.strerror}）")
         return result
-    vocab_file = os.path.join(adr_dir, VOCAB_NAME)
-    if VOCAB_NAME not in entries:
-        if INDEX_NAME in entries:
-            result.errors.append(f"{INDEX_NAME} があるのに語彙表 {vocab_file} が無い（移行済みなら語彙表を戻す）")
+    terms_file = terms or os.path.join(os.path.dirname(os.path.abspath(adr_dir)), TERMS_NAME)
+    if not os.path.isfile(terms_file):
+        if terms is not None:
+            result.errors.append(f"--terms の語彙表 {terms_file} が無いかファイルではない")
+        elif INDEX_NAME in entries:
+            result.errors.append(f"{INDEX_NAME} があるのに語彙表 {terms_file} が無い（移行済みなら語彙表を戻す）")
+        elif os.path.exists(terms_file):
+            result.errors.append(f"語彙表 {terms_file} がファイルではない")
         else:
-            result.warnings.append(f"語彙表 {vocab_file} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
+            result.warnings.append(f"語彙表 {terms_file} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
             result.skipped = True
         return result
     try:
-        vocab = load_vocab(vocab_file)
+        vocab = load_vocab(terms_file)
     except OSError as e:
-        result.errors.append(f"語彙表 {vocab_file} を読めない（{e.strerror}）")
+        result.errors.append(f"語彙表 {terms_file} を読めない（{e.strerror}）")
         return result
     if not vocab:
-        result.errors.append(f"語彙表 {vocab_file} に topic 表が無い（見出し 1 列目が `topic` の表を置く）")
+        result.errors.append(f"語彙表 {terms_file} に topic 表が無い（見出し 1 列目が `topic` の表を置く）")
         return result
     adrs, result.warnings = load_adrs(adr_dir)
     errors, warnings = validate(adrs, [name for name, _ in vocab])
@@ -252,9 +321,9 @@ def run(adr_dir, write=False):
     result.warnings += warnings
     if errors:
         return result
-    result.index = render(adrs, vocab)
+    result.index = render(adrs, vocab, os.path.relpath(terms_file, adr_dir))
     if write:
-        with open(os.path.join(adr_dir, INDEX_NAME), "w", encoding="utf-8") as f:
+        with open(os.path.join(adr_dir, INDEX_NAME), "w", encoding="utf-8", newline="") as f:
             f.write(result.index)
     return result
 
@@ -262,10 +331,11 @@ def run(adr_dir, write=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("adr_dir")
+    parser.add_argument("--terms", help=f"topic 語彙表のパス（既定: ADR_DIR の親の {TERMS_NAME}）")
     parser.add_argument("--check", action="store_true", help="INDEX.md を書かず、最新かどうかだけ検査する")
     args = parser.parse_args(argv)
 
-    result = run(args.adr_dir, write=not args.check)
+    result = run(args.adr_dir, terms=args.terms, write=not args.check)
     for w in result.warnings:
         print(f"warning: {w}", file=sys.stderr)
     for e in result.errors:
@@ -279,7 +349,7 @@ def main(argv=None):
     if args.check:
         current = ""
         if os.path.exists(index_path):
-            with open(index_path, encoding="utf-8") as f:
+            with open(index_path, encoding="utf-8", newline="") as f:
                 current = f.read()
         if current != result.index:
             print(f"error: {index_path} が最新ではない（--check なしで再生成する）", file=sys.stderr)

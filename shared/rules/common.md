@@ -47,8 +47,8 @@
 - ADR → `adr/` 1 か所に集約する。Binding に `service` があっても分割せず、ハブ構成では `system/adr/` にまとめる。サービス軸は frontmatter の `scope` で表す（ADR はどのサービスからも引けることが価値。判断の経緯は ADR-0003）
 - 設計書 → `design/`。`service` 指定時のサービス固有設計は `services/{service}/design/`、横断は `system/design/`（設計は 1 サービスの実装構造でローカル性が本物のため、ADR とは扱いを分ける）
 - すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する
-- ADR にはさらに `topic`（判断領域タグ、複数可）と関係リンク `supersedes` / `superseded_by`（置き換え。旧決定は失効）、`amends` / `amended_by`（補足。旧決定は有効のまま）を付与する。関係は必ず双方向に書く。status は `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に限る。置き換え・補足された旧 ADR に許す編集は `status` と `superseded_by` / `amended_by` の追記（と `updated` の更新）のみで、本文には触れない。topic の一括見直しも同じく frontmatter のみ
-- ADR ディレクトリには `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）と `INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧。`python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir}` で生成し、手で編集しない。マージ前は `--check` で陳腐化を検査する）を置く。語彙表も INDEX.md も無いディレクトリだけが未移行として照合を省略される（移行が済むまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error）。topic の見直しは定期ではなく、合う topic が無い・スクリプトが分割を警告した・振り返りで「引けなかった」が出た、のいずれかを契機に frontmatter の一括書き換えで行う（判断の経緯は ADR-0003）
+- ADR にはさらに `topic`（判断領域タグ）と `summary`（要旨一行）を必須で付け、置き換え・補足の関係は `supersedes` / `superseded_by`・`amends` / `amended_by` で双方向に書く。status は `proposed` / `accepted` / `superseded` / `deprecated` に限る。旧 ADR に許す編集は frontmatter（status・逆リンク・updated）のみで本文には触れない
+- topic の語彙表は `{records_root}/domain-terms.md`（ハブは `system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）、有効 ADR の索引は ADR ディレクトリの `INDEX.md`（生成物）。生成と照合は `{aidd_root}/shared/scripts/adr_index.py` をリポジトリルートで実行する。書き方・検査内容・未移行の扱いは `adr` skill と `review/acceptance.md` §7 に従う（判断の経緯は ADR-0003）
 
 宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo、`aidd_root`: 自 repo ルート）として扱う。
 
