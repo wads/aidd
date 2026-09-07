@@ -4,7 +4,7 @@
 - 有効 ADR（proposed / accepted）を topic 別に索引化し、失効 ADR（superseded / deprecated）は別枠に出す
 - 語彙表に無い topic、片方向リンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告する
 - topic の偏り（10 本超）を警告し、それ以外では警告を出さない
-- 語彙表も INDEX.md も無いディレクトリだけを未移行として照合を省略する（ADR ディレクトリが無い・ディレクトリでない・読めない、--vocab のパスが無い・読めない、INDEX.md があるのに語彙表が無い、topic 表不在は error）
+- 語彙表も INDEX.md も無いディレクトリだけを未移行として照合を省略する（ADR ディレクトリが無い・ディレクトリでない・読めない、語彙表が読めない、INDEX.md があるのに語彙表が無い、topic 表不在は error）
 - --check で INDEX.md の陳腐化を検出する
 """
 import contextlib
@@ -301,16 +301,6 @@ class Validation(AdrIndexCase):
 
         self.assertFalse(os.path.exists(os.path.join(d, "INDEX.md")))
 
-    def test_vocab_can_be_read_from_another_directory(self):
-        d = self.make_dir(vocab=None)
-        system = self.make_dir()
-        self.write(d, "0001-a.md", adr("0001", "x"))
-
-        result = adr_index.run(d, vocab_path=os.path.join(system, "README.md"))
-
-        self.assertEqual(result.errors, [])
-        self.assertFalse(result.skipped)
-
     def test_unmatched_markdown_file_is_warned_and_ignored(self):
         d = self.make_dir()
         self.write(d, "0001-a.md", adr("0001", "x"))
@@ -375,15 +365,6 @@ class UnmigratedDirectory(AdrIndexCase):
         self.assertTrue(any("語彙表" in w for w in result.warnings))
         self.assertFalse(os.path.exists(os.path.join(d, "INDEX.md")))
 
-    def test_explicit_vocab_path_that_does_not_exist_is_an_error_not_a_skip(self):
-        d = self.make_dir(vocab=None)
-        self.write(d, "0001-a.md", adr("0001", "x"))
-
-        result = adr_index.run(d, vocab_path=os.path.join(d, "nope", "README.md"))
-
-        self.assertFalse(result.skipped)
-        self.assertTrue(any("--vocab" in e for e in result.errors))
-
     def test_index_without_vocab_is_an_error_not_a_skip(self):
         d = self.make_dir(vocab=None)
         self.write(d, "0001-a.md", adr("0001", "x"))
@@ -433,15 +414,6 @@ class UnmigratedDirectory(AdrIndexCase):
 
         self.assertFalse(result.skipped)
         self.assertTrue(any("読めない" in e for e in result.errors))
-
-    def test_vocab_pointing_to_a_directory_is_an_error(self):
-        d = self.make_dir(vocab=None)
-        self.write(d, "0001-a.md", adr("0001", "x"))
-
-        result = adr_index.run(d, vocab_path=d)
-
-        self.assertFalse(result.skipped)
-        self.assertTrue(any("--vocab" in e for e in result.errors))
 
     def test_main_exits_zero_for_unmigrated_directory_even_with_check(self):
         d = self.make_dir(vocab=None)

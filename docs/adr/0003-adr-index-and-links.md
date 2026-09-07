@@ -2,11 +2,11 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-04
+updated: 2026-09-07
 topic: [records]
 supersedes: []
 superseded_by: []
-amends: []
+amends: [0002]
 amended_by: []
 ---
 
@@ -14,7 +14,7 @@ amended_by: []
 
 ## ステータス
 
-承認済み（2026-09-04。critical-gate の指摘を受けて同日に決定 4・5・7 を修正）
+承認済み（2026-09-04。critical-gate の指摘を受けて同日に決定 4・5・7 を修正。2026-09-07 のレビューで決定 4 を修正し、決定 9 を追加）
 
 ## 背景
 
@@ -60,11 +60,12 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
    - `amends` / `amended_by`: 補足（旧決定は有効のまま一部を追加・修正）。同じく双方向
 2. **status の語彙**: `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に統一。`active` は使わない
 3. **旧 ADR の編集範囲**: `status` の変更と `superseded_by` / `amended_by` の追記（と `updated` の更新）のみ。本文には触れない。失効の表示は frontmatter と INDEX.md が担う。ADR-0001 冒頭の注記は残置し、以後は書かない
-4. **ADR ディレクトリの構成**: `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）、`INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧、置き換え・補足関係を併記。先頭に生成物・編集禁止を明記）。INDEX.md と関係リンクの解決範囲は **同一 ADR ディレクトリ内に限る**（連番はディレクトリごとに独立のため）。Binding で `system` / `services/{service}` に分かれる場合、語彙表の正本は `system/adr/README.md` とし、services 側はスクリプトの `--vocab` でそれを指す。ディレクトリ横断の関係が必要になった時点で本 ADR を補足する
-5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する）が ADR ディレクトリを引数に INDEX.md を生成する。同時に、語彙表に無い topic、片方向のリンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告し、誤りがあれば INDEX.md を書かない。topic の偏り（1 topic に 10 本超）は警告。語彙表 `README.md` も `INDEX.md` も無く `--vocab` も未指定のディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、`--vocab` のパスが無い・読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査）で実行する
+4. **ADR ディレクトリの構成**: `README.md`（手書き。topic 語彙表と一行の意味説明。機械可読なのは表の 1 列目のバッククォート）、`INDEX.md`（生成物。有効 ADR = `proposed` / `accepted` の topic 別一覧、置き換え・補足関係を併記。先頭に生成物・編集禁止を明記）。INDEX.md と関係リンクの解決範囲は **同一 ADR ディレクトリ内に限る**（連番はディレクトリごとに独立のため）。この制約が制約にならないよう、ADR ディレクトリは records_root ごとに 1 つだけ置く（決定 9）
+5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する）が ADR ディレクトリを引数に INDEX.md を生成する。同時に、語彙表に無い topic、片方向のリンク、失効なのに status が有効のままの ADR、連番重複を誤りとして報告し、誤りがあれば INDEX.md を書かない。topic の偏り（1 topic に 10 本超）は警告。語彙表 `README.md` も `INDEX.md` も無いディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査）で実行する
 6. **skill の変更**: adr workflow 手順 1 に「同 topic の既存 ADR を読み、置換 / 補足 / 無関係のいずれかを宣言する」を追加。critical-gate のレンズに「既存 ADR と矛盾していないか」を追加。context-snapshot と implementation-plan の ADR 参照を Issue 番号 grep から Issue 番号 + topic へ広げる
 7. **topic の見直し**: 定期見直しはしない。トリガーは (a) 新 ADR に合う topic が無い、(b) スクリプトの分割警告、(c) 振り返りで「引けなかった」が期待違反として出た、の 3 つ。見直しは frontmatter の一括書き換えと再生成で行い、本文には触れない。「1 本のみの topic」は警告しない（新 topic は必ず 1 本から始まり、統合の要否は (c) で拾う）
 8. **適用範囲**: 本 ADR は ADR のみを対象とする。設計書の置き換え規約（`design-docs` skill の「Replaces」）は変えない。設計書へ広げる場合は別 ADR で決める
+9. **ADR ディレクトリは分割しない**（ADR-0002 の記録形式の決定を、ADR について修正する）: Binding に `service` があっても ADR を `services/{service}/adr/` に分けず、records_root ごとに 1 つの ADR ディレクトリへ集約する（ハブ構成では `system/adr/`）。どのサービスの判断かは既存の `scope` フィールドで表す。設計書の `services/{service}/design/` 分割は維持する。スクリプトの `--vocab` は分割を前提とした機能なので削除する
 
 ## 設計意図
 
@@ -79,8 +80,9 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 ## 影響範囲
 
 - aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/adr/README.md`・`INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
+- aidd（決定 9）: `shared/rules/common.md` の記録の配置、`.claude/skills/adr/workflow.md`、`review/acceptance.md`、`shared/scripts/adr_index.py`（`--vocab` の削除）と対応するテスト、ADR-0002 の `amended_by`
 - aidd（追加）: `docs/design/0001-dev-phase-decomposition.md` と `docs/design/intent-driven-development.md` の置き換え規約の記述（ADR に限定）、`README.md` の構成表、`docs/manual.md`、`.claude/skills/retrospective/workflow.md`（見直しトリガー (c) の受け皿）、`CLAUDE.md` の Test command、`.gitignore`
-- 利用側（remosys-context ハブ）: `conventions/context-format.md` の ADR 向け status 語彙の分離（ハブ側の P3 判断）、`system/adr/` の既存 9 本への topic 付与と見出し・status の統一、`README.md` / `INDEX.md` の新設。[clachic/remosys-context#79](https://github.com/clachic/remosys-context/issues/79) で行う。移行完了までは決定 5 の未移行扱いで照合が省略される
+- 利用側（remosys-context ハブ）: `conventions/context-format.md` の ADR 向け status 語彙の分離と、`services/<name>/adr/` を許す記述の削除（いずれもハブ側の P3 判断）、`system/adr/` の既存 9 本への topic 付与と見出し・status の統一、`README.md` / `INDEX.md` の新設。[clachic/remosys-context#79](https://github.com/clachic/remosys-context/issues/79) で行う。移行完了までは決定 5 の未移行扱いで照合が省略される
 
 ## 議論ログ
 
@@ -94,3 +96,5 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 - [2026-09-05] Human: skip は「語彙表も INDEX.md も無く `--vocab` 未指定」に限定し、`aidd_root` を Binding に追加、を採用
 - [2026-09-05] AI: 3 回目のゲートで Critical 1 件（存在しないディレクトリを未移行と誤診）。ディレクトリ存在判定と topic 表不在の error を追加
 - [2026-09-05] AI: 4 回目のゲート通過（Critical なし）。同じ故障クラスの Warning（読めないディレクトリ・非ディレクトリ・`--vocab` がディレクトリ）を error にして閉じた
+- [2026-09-07] AI: レビュー（4 視点）で、`services/{service}/adr/` は利用側ハブで 3 か月・ADR 9 本の運用中に 1 本も使われておらず、サービス軸は既存の `scope` が担っていると報告。分割は決定 4 の「解決範囲は同一ディレクトリ内」と組み合わさると、サービス側から system の決定が引けず、境界をまたぐ置き換えも表現できないため有害と評価
+- [2026-09-07] Human: 選択式の問いで、ADR ディレクトリの統合（決定 9）と本 ADR への取り込みを採用

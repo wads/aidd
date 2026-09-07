@@ -2,12 +2,12 @@
 """ADR ディレクトリから有効な ADR の索引 INDEX.md を生成し、frontmatter の整合を照合する。
 
 Usage:
-    python3 {aidd_root}/shared/scripts/adr_index.py ADR_DIR [--vocab README.md] [--check]
+    python3 {aidd_root}/shared/scripts/adr_index.py ADR_DIR [--check]
 
 ADR_DIR 直下の NNNN-*.md を読む。関係リンク（supersedes 等）は同じ ADR_DIR 内の番号のみを指す。
-topic の語彙表は ADR_DIR/README.md の、見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。ハブ構成の services 側では
---vocab で system/adr/README.md を指す。語彙表も INDEX.md も無く --vocab も未指定のディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する。
-次は error（skip の抜け道にしない）: ADR_DIR が無い・ディレクトリでない・読めない、--vocab のパスが無い・読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
+topic の語彙表は ADR_DIR/README.md の、見出し 1 列目が topic の表（各行 1 列目がバッククォートの topic 名）。
+語彙表も INDEX.md も無いディレクトリを未移行とみなし、警告のみで照合と生成を省略する。
+次は error（skip の抜け道にしない）: ADR_DIR が無い・ディレクトリでない・読めない、語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
 語彙表は README.md の表のうち、見出し行の 1 列目が `topic` の表だけを読む。
@@ -219,7 +219,7 @@ def render(adrs, vocab):
     return "\n".join(lines) + "\n"
 
 
-def run(adr_dir, vocab_path=None, write=False):
+def run(adr_dir, write=False):
     result = Result()
     if not os.path.isdir(adr_dir):
         what = "ディレクトリではない" if os.path.exists(adr_dir) else "存在しない"
@@ -230,16 +230,12 @@ def run(adr_dir, vocab_path=None, write=False):
     except OSError as e:
         result.errors.append(f"ADR ディレクトリ {adr_dir} を読めない（{e.strerror}）")
         return result
-    default_vocab = os.path.join(adr_dir, VOCAB_NAME)
-    vocab_file = vocab_path or default_vocab
-    if vocab_path and not os.path.isfile(vocab_path):
-        result.errors.append(f"語彙表 {vocab_path} が無いかファイルではない（--vocab のパスを確認する）")
-        return result
-    if not vocab_path and VOCAB_NAME not in entries:
+    vocab_file = os.path.join(adr_dir, VOCAB_NAME)
+    if VOCAB_NAME not in entries:
         if INDEX_NAME in entries:
-            result.errors.append(f"{INDEX_NAME} があるのに語彙表 {default_vocab} が無い（移行済みなら語彙表を戻す。services 側なら --vocab を指定する）")
+            result.errors.append(f"{INDEX_NAME} があるのに語彙表 {vocab_file} が無い（移行済みなら語彙表を戻す）")
         else:
-            result.warnings.append(f"語彙表 {default_vocab} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
+            result.warnings.append(f"語彙表 {vocab_file} も {INDEX_NAME} も無い。未移行として照合と索引生成を省略する")
             result.skipped = True
         return result
     try:
@@ -266,11 +262,10 @@ def run(adr_dir, vocab_path=None, write=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("adr_dir")
-    parser.add_argument("--vocab", help=f"topic 語彙表のパス（既定: ADR_DIR/{VOCAB_NAME}）")
     parser.add_argument("--check", action="store_true", help="INDEX.md を書かず、最新かどうかだけ検査する")
     args = parser.parse_args(argv)
 
-    result = run(args.adr_dir, vocab_path=args.vocab, write=not args.check)
+    result = run(args.adr_dir, write=not args.check)
     for w in result.warnings:
         print(f"warning: {w}", file=sys.stderr)
     for e in result.errors:
