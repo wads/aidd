@@ -183,6 +183,7 @@ class IndexGeneration(AdrIndexCase):
             updated: 2026-09-04
             topic: [records]
             summary: s
+            # frontmatter 内のコメント行は見出しではない
             ---
 
             ```
@@ -308,12 +309,12 @@ class Validation(AdrIndexCase):
 
     def test_missing_required_fields_are_errors(self):
         d = self.make_dir()
-        self.write(d, "0001-a.md", "---\nstatus: accepted\ntopic: [records]\n---\n# [ADR-0001] x\n")
+        self.write(d, "0001-a.md", "---\ntype:\nstatus: accepted\ntopic: [records]\n---\n# [ADR-0001] x\n")
 
         errors = adr_index.run(d).errors
 
         for key in ("type", "scope", "updated", "summary"):
-            self.assertTrue(any(e.startswith("ADR-0001:") and key in e for e in errors), key)
+            self.assertEqual(len([e for e in errors if e.startswith("ADR-0001:") and key in e]), 1, key)
 
     def test_wrong_type_and_malformed_updated_are_errors(self):
         d = self.make_dir()
@@ -448,6 +449,21 @@ class Coverage(AdrIndexCase):
 
         self.assertEqual(adr_index.run(d).errors, [])
 
+    def test_proposed_predecessor_also_requires_a_declaration(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "提案中", status="proposed"))
+        self.write(d, "0002-b.md", adr("0002", "後"))
+
+        self.assertTrue(any(e.startswith("ADR-0002:") and "ADR-0001" in e for e in adr_index.run(d).errors))
+
+    def test_comma_separated_considered_without_brackets_is_read_whole(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "a"))
+        self.write(d, "0002-b.md", adr("0002", "b", considered="0001"))
+        self.write(d, "0003-c.md", adr("0003", "c", considered="0001, 0002"))
+
+        self.assertEqual(adr_index.run(d).errors, [])
+
     def test_higher_numbered_adrs_need_not_be_mentioned(self):
         d = self.make_dir()
         self.write(d, "0001-a.md", adr("0001", "先"))
@@ -561,6 +577,18 @@ class TermsLocation(AdrIndexCase):
         d = self.make_dir()
         os.chmod(d, 0)
         self.addCleanup(os.chmod, d, 0o700)
+
+        result = adr_index.run(d)
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("読めない" in e for e in result.errors))
+
+    @unittest.skipIf(getattr(os, "geteuid", lambda: -1)() == 0, "root は権限に関係なく読めるため検証できない")
+    def test_unreadable_terms_file_is_an_error_not_a_skip(self):
+        d = self.make_dir()
+        os.chmod(self.terms_path(d), 0)
+        self.addCleanup(os.chmod, self.terms_path(d), 0o600)
+        self.write(d, "0001-a.md", adr("0001", "x"))
 
         result = adr_index.run(d)
 

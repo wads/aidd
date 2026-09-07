@@ -118,6 +118,14 @@ def _as_list(value):
     return value if isinstance(value, list) else [value]
 
 
+def _as_numbers(value):
+    """リンク欄の値を番号のリストにする。角括弧なしのカンマ区切りも受け付ける。"""
+    items = []
+    for v in _as_list(value):
+        items += [part.strip() for part in str(v).split(",") if part.strip()]
+    return items
+
+
 def normalize_number(value):
     match = NUMBER.search(str(value))
     return f"{int(match.group(1)):04d}" if match else str(value)
@@ -167,7 +175,7 @@ def load_adrs(adr_dir):
         with open(os.path.join(adr_dir, name), encoding="utf-8") as f:
             text = f.read()
         fm, body = split_frontmatter(text)
-        links = {key: [normalize_number(v) for v in _as_list((fm or {}).get(key)) if v] for key in LINK_KEYS}
+        links = {key: [normalize_number(v) for v in _as_numbers((fm or {}).get(key))] for key in LINK_KEYS}
         adrs.append(Adr(
             num=match.group(1),
             filename=name,
@@ -199,7 +207,7 @@ def validate(adrs, vocab_names):
             value = a.fm.get(key)
             if value in (None, "", []):
                 errors.append(f"{a.label}: {key} が無い")
-        if a.fm.get("type") not in (None, "", "adr"):
+        if a.fm.get("type") not in (None, "", [], "adr"):
             errors.append(f"{a.label}: type '{a.fm.get('type')}' は不正（adr）")
         if isinstance(a.fm.get("updated"), str) and a.fm.get("updated") and not DATE.match(a.fm["updated"]):
             errors.append(f"{a.label}: updated '{a.fm['updated']}' は YYYY-MM-DD でない")

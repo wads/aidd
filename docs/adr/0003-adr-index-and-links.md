@@ -29,7 +29,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 
 ### 案1: frontmatter に検索軸と関係リンクを追加し、索引をスクリプトで生成する（採用）
 
-- 概要: `topic`（判断領域、複数可）と関係リンク `supersedes` / `superseded_by` / `amends` / `amended_by` を frontmatter に追加。ADR ディレクトリに手書きの topic 語彙表（`README.md`）と、スクリプト生成の有効 ADR 索引（`INDEX.md`）を置く。生成スクリプトが語彙表照合・双方向リンク・superseded の残存を検査し、マージ前契約チェック（`review/acceptance.md` §7）で実行する
+- 概要: `topic`（判断領域、複数可）と関係リンク `supersedes` / `superseded_by` / `amends` / `amended_by` を frontmatter に追加。records_root に手書きの topic 語彙表（`domain-terms.md`）、ADR ディレクトリにスクリプト生成の有効 ADR 索引（`INDEX.md`）を置く。生成スクリプトが語彙表照合・双方向リンク・superseded の残存を検査し、マージ前契約チェック（`review/acceptance.md` §7）で実行する
 - メリット: 検索・衝突検出・失効表示が機械可読になる。索引が生成物なので腐らない。照合が AI の読み落としに依存しない
 - デメリット: aidd に初のコード資産（スクリプト）が入る。フィールドが 5 つ増える
 
@@ -59,10 +59,11 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
    - `supersedes` / `superseded_by`: 置き換え（旧決定は全体が失効）。新 ADR が `supersedes`、旧 ADR が `superseded_by` を持ち、必ず双方向にする
    - `amends` / `amended_by`: 補足・部分修正（旧決定は有効のまま一部を追加・修正）。同じく双方向。**旧 ADR の一部だけを失効させる場合は `supersedes` でなく `amends`** を使う（`supersedes` は旧 ADR を丸ごと有効索引から外すため、生き残った決定が消える）
    - 関係リンク 4 つと `considered` は関係があるときだけ書く（空リストの行は不要）
+   - `issue`: 任意。対象 Issue の参照（例 `owner/repo#123`）。スクリプトは検証しない。規約「Issue 番号は frontmatter または Issue コメントで紐づける」の frontmatter 側の受け皿
 2. **status の語彙**: `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に統一。`active` は使わない
 3. **旧 ADR の編集範囲**: `status` の変更と `superseded_by` / `amended_by` の追記（と `updated` の更新）のみ。本文には触れない。失効の表示は frontmatter と INDEX.md が担う。ADR-0001 冒頭の注記は残置し、以後は書かない
 4. **語彙表と索引の置き場**: 語彙表は ADR ディレクトリの外、その親に `domain-terms.md` として置く（standalone は `{records_root}/domain-terms.md`、ハブは `{records_root}/system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）。用語集としても使え、ADR の README.md は人間向け説明のために空けておく。機械可読なのは見出し 1 列目が `topic` の表の 1 列目のバッククォートだけ。`INDEX.md` は ADR ディレクトリ内の生成物（有効 ADR = `proposed` / `accepted` の topic 別一覧に要旨と置き換え・補足関係を併記。先頭に生成物・編集禁止を明記）。INDEX.md と関係リンクの解決範囲は **同一 ADR ディレクトリ内に限る**（連番はディレクトリごとに独立のため）。この制約が制約にならないよう、ADR ディレクトリは records_root ごとに 1 つだけ置く（決定 9）
-5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する。リポジトリルートを cwd にして実行する）が ADR ディレクトリを引数に INDEX.md を生成する。語彙表は既定で ADR ディレクトリの親の `domain-terms.md`（`--terms` で変更可）。同時に次を誤りとして報告し、誤りがあれば INDEX.md を書かない: frontmatter の不在、必須項目（`type` / `scope` / `status` / `updated` / `topic` / `summary`）の欠落と不正値、語彙表に無い topic、片方向・自己参照・不在のリンク、失効なのに status が有効のままの ADR、連番重複、同 topic の若い番号の有効 ADR を読んだ宣言（決定 1 の `considered`）の欠落。topic の偏り（1 topic に 10 本超）は警告。語彙表も `INDEX.md` も無いディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、`--terms` のパスが無い、語彙表が読めない・ファイルでない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査。改行コードの変化も検出）で実行する。python3 が無い環境では §7 の第 3 の通過条件（手作業照合と確認範囲の明記）に従う
+5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する。リポジトリルートを cwd にして実行する）が ADR ディレクトリを引数に INDEX.md を生成する。語彙表は既定で ADR ディレクトリの親の `domain-terms.md`（`--terms` で変更可）。同時に次を誤りとして報告し、誤りがあれば INDEX.md を書かない: frontmatter の不在、必須項目（`type` / `scope` / `status` / `updated` / `topic` / `summary`）の欠落と不正値、語彙表に無い topic、片方向・自己参照・不在のリンク、失効なのに status が有効のままの ADR（と `superseded` なのに `superseded_by` が無い ADR）、連番重複、同 topic の若い番号の有効 ADR を読んだ宣言（決定 1 の `considered`）の欠落。topic の偏り（1 topic に 10 本超）は警告。語彙表も `INDEX.md` も無いディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、`--terms` のパスが無い、語彙表が読めない・ファイルでない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査。改行コードの変化も検出）で実行する。python3 が無い環境では §7 の第 3 の通過条件（手作業照合と確認範囲の明記）に従う
 6. **skill の変更**: adr workflow 手順 1 に「同 topic の既存 ADR を読み、置換 / 補足 / 無関係のいずれかを宣言する」を追加。critical-gate のレンズに「既存 ADR と矛盾していないか」を追加。context-snapshot と implementation-plan の ADR 参照を Issue 番号 grep から Issue 番号 + topic へ広げる
 7. **topic の見直し**: 定期見直しはしない。トリガーは (a) 新 ADR に合う topic が無い、(b) スクリプトの分割警告、(c) 振り返りで「引けなかった」が期待違反として出た、の 3 つ。見直しは frontmatter の一括書き換えと再生成で行い、本文には触れない。「1 本のみの topic」は警告しない（新 topic は必ず 1 本から始まり、統合の要否は (c) で拾う）
 8. **適用範囲**: 本 ADR は ADR のみを対象とする。設計書の置き換え規約（`design-docs` skill の「Replaces」）は変えない。設計書へ広げる場合は別 ADR で決める
@@ -80,7 +81,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 
 ## 影響範囲
 
-- aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/adr/README.md`・`INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
+- aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/domain-terms.md`・`docs/adr/INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
 - aidd（決定 9）: `shared/rules/common.md` の記録の配置、`.claude/skills/adr/workflow.md`、`review/acceptance.md`、`shared/scripts/adr_index.py`（`--vocab` の削除）と対応するテスト、ADR-0002 の `amended_by`
 - aidd（2026-09-07 レビュー反映）: `docs/domain-terms.md`（`docs/adr/README.md` から移動）、`shared/templates/domain-terms-template.md`（新設）、テンプレートの `summary` / `considered` と関係リンクの任意化、スクリプトの BOM・自己参照・CRLF・見出し抽出・必須項目・網羅検査、`CLAUDE.md` の Test command を `TODO:` に戻し aidd 自身のコマンドは `README.md` へ
 - aidd（追加）: `docs/design/0001-dev-phase-decomposition.md` と `docs/design/intent-driven-development.md` の置き換え規約の記述（ADR に限定）、`README.md` の構成表、`docs/manual.md`、`.claude/skills/retrospective/workflow.md`（見直しトリガー (c) の受け皿）、`CLAUDE.md` の Test command、`.gitignore`

@@ -60,7 +60,7 @@ PR 説明に以下の必須セクションをそろえる。該当がない場�
 - 「別 Issue でやる」「後で記録する」と宣言した項目が、宣言先（Issue・ADR 等）に実在するか
 - PR・Issue に書いた「確認済み・実施済み・green」等の事実主張に、対応する実行記録があるか（`common.md` の証拠つき報告）
 - PR 必須セクションがそろっているか（§4）
-- ADR または語彙表 `domain-terms.md` を追加・変更した場合、リポジトリルートで `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir} --check` が `ok`（INDEX.md が最新で、必須項目・語彙表・リンク・status・網羅宣言の error が無い）か。実行出力を PR に転記する。通過条件は次の 3 つのいずれか: (1) `ok`、(2) `skipped`（語彙表も INDEX.md も無い未移行ディレクトリ）で、移行 Issue が open で実在するか語彙表をこの PR で作る、(3) python3 が無い環境で、語彙表に無い topic・双方向リンク・同 topic の網羅宣言を手作業で照合し、確認した範囲と結果を PR に明記する（INDEX.md は手書き可）
+- ADR または語彙表 `domain-terms.md` を追加・変更した場合、リポジトリルートで `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir} --check`（`{adr_dir}` は `{records_root}/adr`、ハブは `{records_root}/system/adr`）が `ok`（INDEX.md が最新で、必須項目・語彙表・リンク・status・網羅宣言＝同 topic の若い番号の有効 ADR が supersedes / amends / considered に現れること、の error が無い）か。実行出力を PR に転記する。通過条件は次の 3 つのいずれか: (1) `ok`、(2) `skipped`（語彙表も INDEX.md も無い未移行ディレクトリ）で、移行 Issue が open で実在する（語彙表をこの PR で作るなら (1) に戻す）、(3) python3 が無い環境で、語彙表に無い topic・双方向リンク・網羅宣言を手作業で照合し、確認した範囲と結果を PR に明記する（INDEX.md は手書き可）
 
 ## フェーズ間の戻り
 
