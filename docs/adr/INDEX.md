@@ -5,12 +5,12 @@
 
 ## records · 記録・開発運用の決め方（ADR・設計書・Issue の置き場と書き方、skill の構成）
 
-- [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0003
-- [ADR-0003 ADR の検索性と置き換え関係の機械可読化](0003-adr-index-and-links.md): ADR に topic・要旨・双方向リンクを持たせ、語彙表 domain-terms.md と生成索引 INDEX.md をスクリプトで照合する。ADR ディレクトリは records_root ごとに 1 つ · accepted · amends 0002
+- [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0008
+- [ADR-0008 ADR の検索性と置き換え関係の機械可読化](0008-adr-index-and-links.md): ADR に topic・要旨・双方向リンクを持たせ、語彙表 domain-terms.md と生成索引 INDEX.md をスクリプトで照合する。ADR ディレクトリは records_root ごとに 1 つ · accepted · amends 0002
 
 ## tooling · 開発ツール・ハーネスの選定と配置（Claude Code / Codex など実行環境に依存する判断）
 
-- [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0003
+- [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0008
 
 ## 失効
 

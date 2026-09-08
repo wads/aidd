@@ -7,7 +7,7 @@ updated: 2026-09-07
 
 # 用語と判断領域（domain terms）
 
-ADR の frontmatter `topic` に使える値は下の「判断領域」表に限る。合う値が無ければ、その ADR と同じコミットでここに行を足す。有効 ADR の一覧は [adr/INDEX.md](adr/INDEX.md)（生成物。リポジトリルートで `python3 shared/scripts/adr_index.py docs/adr` を実行して再生成）。規約は `shared/rules/common.md`「Project Binding」と `adr` skill、経緯は [ADR-0003](adr/0003-adr-index-and-links.md)。
+ADR の frontmatter `topic` に使える値は下の「判断領域」表に限る。合う値が無ければ、その ADR と同じコミットでここに行を足す。有効 ADR の一覧は [adr/INDEX.md](adr/INDEX.md)（生成物。リポジトリルートで `python3 shared/scripts/adr_index.py docs/adr` を実行して再生成）。規約は `shared/rules/common.md`「Project Binding」と `adr` skill、経緯は [ADR-0008](adr/0008-adr-index-and-links.md)。
 
 機械可読なのは、見出し 1 列目が `topic` の表の 1 列目（バッククォート）だけ。本文の箇条書きや他の表は語彙にならない。
 

@@ -87,7 +87,7 @@ intent-driven-development.md の Intent 分類を、寿命と置き場所で 2 �
 - PR タイトル: `#123: 変更の要約`
 - Issue には ADR・設計書へのリンクをコメントで貼る
 
-連番はディレクトリ内の並び順（読む順序のヒント）のためのもの。ADR の新旧・置き換え関係の正は frontmatter の関係リンク（`supersedes` / `superseded_by`、補足は `amends` / `amended_by`。必ず双方向）とし、有効な ADR の一覧は ADR ディレクトリの `INDEX.md`（生成物）で引く（ADR-0003）。設計書の置き換えは `design-docs` skill の「Replaces」表記に従う。
+連番はディレクトリ内の並び順（読む順序のヒント）のためのもの。ADR の新旧・置き換え関係の正は frontmatter の関係リンク（`supersedes` / `superseded_by`、補足は `amends` / `amended_by`。必ず双方向）とし、有効な ADR の一覧は ADR ディレクトリの `INDEX.md`（生成物）で引く（ADR-0008）。設計書の置き換えは `design-docs` skill の「Replaces」表記に従う。
 
 ### PR 説明の必須セクション
 

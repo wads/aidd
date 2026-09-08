@@ -1,6 +1,6 @@
 """adr_index.py の振る舞いを保証する。
 
-保証すること（ADR-0003 決定 5）:
+保証すること（ADR-0008 決定 5）:
 - 有効 ADR（proposed / accepted）を topic 別に索引化し要旨（summary）を併記、失効 ADR（superseded / deprecated）は別枠に出す
 - frontmatter の必須項目（type / scope / updated / summary / status / topic）、語彙表に無い topic、片方向・自己参照・不在のリンク、
   失効なのに status が有効のままの ADR、連番重複、同 topic の既存 ADR を読んだ宣言（supersedes / amends / considered）の欠落を誤りとして報告する
