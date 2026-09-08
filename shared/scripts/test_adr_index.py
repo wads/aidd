@@ -456,6 +456,13 @@ class Coverage(AdrIndexCase):
 
         self.assertTrue(any(e.startswith("ADR-0002:") and "ADR-0001" in e for e in adr_index.run(d).errors))
 
+    def test_proposed_declarer_is_also_checked(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "先"))
+        self.write(d, "0002-b.md", adr("0002", "提案中", status="proposed"))
+
+        self.assertTrue(any(e.startswith("ADR-0002:") and "ADR-0001" in e for e in adr_index.run(d).errors))
+
     def test_comma_separated_considered_without_brackets_is_read_whole(self):
         d = self.make_dir()
         self.write(d, "0001-a.md", adr("0001", "a"))

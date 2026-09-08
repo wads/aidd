@@ -2,7 +2,7 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-07
+updated: 2026-09-08
 topic: [records]
 summary: ADR に topic・要旨・双方向リンクを持たせ、語彙表 domain-terms.md と生成索引 INDEX.md をスクリプトで照合する。ADR ディレクトリは records_root ごとに 1 つ
 amends: [0002]

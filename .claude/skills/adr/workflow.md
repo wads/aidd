@@ -27,7 +27,7 @@
 ## 5. ADR の記録
 
 - `shared/templates/adr-template.md` に従って書く。1 ページ以内を目安にし、仕様の本文ではなく判断の理由を残す
-- frontmatter の必須項目は `type: adr` / `scope` / `status` / `updated` / `topic` / `summary`（要旨一行。INDEX.md に出る）。`supersedes` / `superseded_by` / `amends` / `amended_by` / `considered` は関係があるときだけ書く（空リストの行は書かない）。番号は同じ ADR ディレクトリ内のものだけを指す
+- frontmatter の必須項目は `type: adr` / `scope` / `status` / `updated` / `topic` / `summary`（要旨一行。INDEX.md に出る）。`supersedes` / `superseded_by` / `amends` / `amended_by` / `considered` は関係があるときだけ書く（空リストの行は書かない）。対象 Issue は任意の `issue`（例 `owner/repo#123`）に書ける。番号は同じ ADR ディレクトリ内のものだけを指す
 - ファイル名: `{records_root}/adr/{連番}-short-title.md`（連番は 4 桁 0 埋め、ADR ディレクトリ内で独立）。Binding に `service` があっても ADR は分割せず、ハブ構成では `{records_root}/system/adr/` にまとめる。どのサービスの判断かは frontmatter の `scope` に書く
 - 対象 Issue 番号は frontmatter または Issue コメントで紐づける（ファイル名には含めない）
 - 既存 ADR の判断を丸ごと置き換える場合は、新 ADR の frontmatter に `supersedes: [旧番号]` を書き、旧 ADR の frontmatter に `superseded_by: [新番号]` と `status: superseded` を追記する。一部だけ変える場合は `amends` / `amended_by` を同様に双方向で書く（`supersedes` は旧 ADR を丸ごと有効索引から外すので、生き残る決定があるなら `amends`）。旧 ADR への編集はこの frontmatter 変更（と `updated`）のみで、本文の status 欄は記録時点のまま触らない

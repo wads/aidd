@@ -46,8 +46,8 @@
 
 - ADR → `adr/` 1 か所に集約する。Binding に `service` があっても分割せず、ハブ構成では `system/adr/` にまとめる。サービス軸は frontmatter の `scope` で表す（ADR はどのサービスからも引けることが価値。判断の経緯は ADR-0003）
 - 設計書 → `design/`。`service` 指定時のサービス固有設計は `services/{service}/design/`、横断は `system/design/`（設計は 1 サービスの実装構造でローカル性が本物のため、ADR とは扱いを分ける）
-- すべての長期記録に frontmatter（`type`（adr / design / overview）/ `scope` / `status` / `updated`）を付与する
-- ADR にはさらに `topic`（判断領域タグ）と `summary`（要旨一行）を必須で付け、同 topic の既存 ADR との関係を `supersedes` / `amends`（双方向）か `considered`（読んだが無関係）で宣言する。status は `proposed` / `accepted` / `superseded` / `deprecated` に限る。旧 ADR の本文には触れない（frontmatter の追記のみ）
+- すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する。ADR の `type` は `adr`（他の文書の値は利用側の規約に従う）
+- ADR にはさらに `topic`（判断領域タグ）と `summary`（要旨一行）を必須で付け、同 topic の既存 ADR との関係を `supersedes` / `amends`（双方向）か `considered`（読んだが無関係）で宣言する。status は `proposed` / `accepted` / `superseded` / `deprecated` に限る。旧 ADR に許す編集は frontmatter（status・逆リンク・updated）のみで本文には触れない
 - topic の語彙表は `{records_root}/domain-terms.md`（ハブは `system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）、有効 ADR の索引は ADR ディレクトリの `INDEX.md`（生成物）。生成と照合は `{aidd_root}/shared/scripts/adr_index.py` をリポジトリルートで実行する。書き方・検査内容・未移行の扱いは `adr` skill と `review/acceptance.md` §7 に従う（判断の経緯は ADR-0003）
 
 宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo、`aidd_root`: 自 repo ルート）として扱う。
