@@ -12,7 +12,7 @@ amends: [0002]
 
 ## ステータス
 
-承認済み（2026-09-04。critical-gate の指摘を受けて同日に決定 4・5・7 を修正。2026-09-07 のレビューで決定 1・4・5 を修正し決定 9 を追加。2026-09-08 に `issue` 欄とトレードオフを追記。2026-09-09 の再レビューで決定 1 の効果の断定を撤回し、トレードオフに決定 3 の帰結を追記）
+承認済み（2026-09-04。critical-gate の指摘を受けて同日に決定 4・5・7 を修正。2026-09-07 のレビューで決定 1・4・5 を修正し決定 9 を追加。2026-09-08 に `issue` 欄とトレードオフを追記。2026-09-09 の再レビューで決定 1 の効果の断定を撤回、決定 4 にプレースホルダ表記の理由、決定 5 に未知キー warning と行頭 `#` 行の扱いを追記し、トレードオフに決定 3 の帰結を追記）
 
 ## 背景
 
@@ -63,7 +63,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 2. **status の語彙**: `proposed` / `accepted` / `superseded` / `deprecated`（置き換え先なしの失効）に統一。`active` は使わない
 3. **旧 ADR の編集範囲**: `status` の変更と `superseded_by` / `amended_by` の追記（と `updated` の更新）のみ。本文には触れない。失効の表示は frontmatter と INDEX.md が担う。ADR-0001 冒頭の注記は残置し、以後は書かない
 4. **語彙表と索引の置き場**: 語彙表は ADR ディレクトリの外、その親に `domain-terms.md` として置く（standalone は `{records_root}/domain-terms.md`、ハブは `{records_root}/system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）。用語集としても使え、ADR の README.md は人間向け説明のために空けておく。機械可読なのは見出し 1 列目が `topic` の表の 1 列目のバッククォートだけ。`INDEX.md` は ADR ディレクトリ内の生成物（有効 ADR = `proposed` / `accepted` の topic 別一覧に要旨と置き換え・補足関係を併記。先頭に生成物・編集禁止を明記。再生成手順は `<aidd_root>` のプレースホルダ表記にとどめる。実パスを埋めると生成物が環境依存になり `--check` が割れるため）。INDEX.md と関係リンクの解決範囲は **同一 ADR ディレクトリ内に限る**（連番はディレクトリごとに独立のため）。この制約が制約にならないよう、ADR ディレクトリは records_root ごとに 1 つだけ置く（決定 9）
-5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する。リポジトリルートを cwd にして実行する）が ADR ディレクトリを引数に INDEX.md を生成する。語彙表は既定で ADR ディレクトリの親の `domain-terms.md`（`--terms` で変更可）。同時に次を誤りとして報告し、誤りがあれば INDEX.md を書かない: frontmatter の不在、必須項目（`type` / `scope` / `status` / `updated` / `topic` / `summary`）の欠落と不正値、語彙表に無い topic、片方向・自己参照・不在のリンク、失効なのに status が有効のままの ADR（と `superseded` なのに `superseded_by` が無い ADR）、連番重複、同 topic の若い番号の有効 ADR を読んだ宣言（決定 1 の `considered`）の欠落。topic の偏り（1 topic に 10 本超）と未知の frontmatter キー（スペルミスの検出。独自キーは無視してよい）は警告。frontmatter の列 0 の `#` 行はコメントとして読み飛ばす。語彙表も `INDEX.md` も無いディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、`--terms` のパスが無い、語彙表が読めない・ファイルでない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査。改行コードの変化も検出）で実行する。python3 が無い環境では §7 の第 3 の通過条件（手作業照合と確認範囲の明記）に従う
+5. **索引の生成と照合**: aidd 同梱のスクリプト `{aidd_root}/shared/scripts/adr_index.py`（python3、依存なし。`aidd_root` は Binding に追加する。リポジトリルートを cwd にして実行する）が ADR ディレクトリを引数に INDEX.md を生成する。語彙表は既定で ADR ディレクトリの親の `domain-terms.md`（`--terms` で変更可）。同時に次を誤りとして報告し、誤りがあれば INDEX.md を書かない: frontmatter の不在、必須項目（`type` / `scope` / `status` / `updated` / `topic` / `summary`）の欠落と不正値、語彙表に無い topic、片方向・自己参照・不在のリンク、失効なのに status が有効のままの ADR（と `superseded` なのに `superseded_by` が無い ADR）、連番重複、同 topic の若い番号の有効 ADR を読んだ宣言（決定 1 の `considered`）の欠落。topic の偏り（1 topic に 10 本超）と未知の frontmatter キー（スペルミスの検出。独自キーは無視してよい）は警告。frontmatter の行頭（空白を除く）が `#` の行はコメントとして読み飛ばす。語彙表も `INDEX.md` も無いディレクトリだけを未移行とみなし、警告のみで照合と生成を省略する（既存の利用側が移行を終えるまで壊さない。ADR ディレクトリが無い・ディレクトリでない・読めない、`--terms` のパスが無い、語彙表が読めない・ファイルでない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い、の各場合は error にし、skip が抜け道にならないようにする）。マージ前契約チェック（`review/acceptance.md` §7）では `--check`（書かずに INDEX.md の陳腐化を検査。改行コードの変化も検出）で実行する。python3 が無い環境では §7 の第 3 の通過条件（手作業照合と確認範囲の明記）に従う
 6. **skill の変更**: adr workflow 手順 1 に「同 topic の既存 ADR を読み、置換 / 補足 / 無関係のいずれかを宣言する」を追加。critical-gate のレンズに「既存 ADR と矛盾していないか」を追加。context-snapshot と implementation-plan の ADR 参照を Issue 番号 grep から Issue 番号 + topic へ広げる
 7. **topic の見直し**: 定期見直しはしない。トリガーは (a) 新 ADR に合う topic が無い、(b) スクリプトの分割警告、(c) 振り返りで「引けなかった」が期待違反として出た、の 3 つ。見直しは frontmatter の一括書き換えと再生成で行い、本文には触れない。「1 本のみの topic」は警告しない（新 topic は必ず 1 本から始まり、統合の要否は (c) で拾う）
 8. **適用範囲**: 本 ADR は ADR のみを対象とする。設計書の置き換え規約（`design-docs` skill の「Replaces」）は変えない。設計書へ広げる場合は別 ADR で決める
@@ -77,7 +77,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 
 - aidd が言語非依存のテンプレートである中に python3 スクリプトが入る。python3 が無い環境では照合が動かない（退避経路は `review/acceptance.md` §7 の第 3 の通過条件: 手作業で語彙表・リンク・網羅宣言を照合し、確認した範囲を PR に明記する。INDEX.md は書かず、python3 のある環境で次に ADR に触れる人が生成する。`--check` はバイト完全一致なので手書きの INDEX.md は以後 error になる）
 - topic の粒度は事前に決めない。最初の 10 本程度を書きながら決める。細かすぎれば付与がぶれ、粗すぎれば検索の意味が無い
-- 移行（既存 ADR への topic / summary / considered の遡及付与）と topic の統合時は、網羅規則により同 topic の先行 ADR を遡って `considered` に書くことになり、「読んだ宣言」は一括記入になる（ハブ 9 本で 13〜36 エントリの試算）。移行では全 ADR を読むので実質の追加負荷は小さいと見て受容する。これは決定 1 で「止まらない」と書いた「読まずに列挙する経路」を移行に限って受容することでもある
+- 移行（既存 ADR への topic / summary / considered の遡及付与）と topic の統合時は、網羅規則により同 topic の先行 ADR を遡って `considered` に書くことになり、「読んだ宣言」は一括記入になる（09-08 時点のハブ 9 本での試算で 13〜36 エントリ。実態は system 10 本 + services 1 本の 11 本）。移行では全 ADR を読むので実質の追加負荷は小さいと見て受容する。これは決定 1 で「止まらない」と書いた「読まずに列挙する経路」を移行に限って受容することでもある
 - 決定 3 の帰結として、旧 ADR の本文の status 欄は記録時点のまま残り frontmatter と食い違う（例: ADR-0001 は frontmatter `superseded`、本文 `Status: Proposed`）。正は frontmatter と INDEX.md で、本文の status 欄は読まない。直す予定は無い
 - 必須フィールドが 2 つ（`topic` / `summary`）増え、関係があるときだけ書くフィールドが 5 つ増える。ADR 1 本あたりの人間判断の純増は「topic を選ぶ」「要旨を一行書く」「同 topic の既存 ADR を読んで置換 / 補足 / 無関係を宣言する」の 3 つ
 

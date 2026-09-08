@@ -12,7 +12,7 @@ topic の語彙表は既定で ADR_DIR の親の domain-terms.md（--terms で�
 語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
-先頭の BOM と空行、列 0 の `#` 行は無視する。引用符は値を保護しない（`"A # B"` も ` # ` 以降が落ちる）。
+先頭の BOM と空行、行頭（空白を除く）が `#` の行は無視する。引用符は値を保護しない（`"A # B"` も ` # ` 以降が落ちる）。
 未知のキーは warning（スペルミスの検出。独自キーは無視してよい）。関係リンクの 4 フィールドと considered は関係があるときだけ書けばよい。
 """
 import argparse
@@ -223,7 +223,7 @@ def validate(adrs, vocab_names):
         for key in a.fm:
             if key not in KNOWN_KEYS:
                 near = difflib.get_close_matches(key, KNOWN_KEYS, n=1, cutoff=0.8)
-                hint = f"'{near[0]}' の誤り？" if near else "独自キーなら無視してよい"
+                hint = f"'{near[0]}' の誤り？ 独自キーなら無視してよい" if near else "独自キーなら無視してよい"
                 warnings.append(f"{a.label}: 未知のキー '{key}'（{hint}）")
         if not a.topics:
             errors.append(f"{a.label}: topic が無い")

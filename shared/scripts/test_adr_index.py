@@ -355,7 +355,7 @@ class Validation(AdrIndexCase):
         result = adr_index.run(d)
 
         self.assertEqual(result.errors, [])
-        self.assertTrue(any("'supercedes'" in w and "'supersedes'" in w for w in result.warnings))
+        self.assertTrue(any("'supercedes'" in w and "'supersedes'" in w and "独自キー" in w for w in result.warnings))
         self.assertTrue(any("'deciders'" in w and "独自キー" in w for w in result.warnings))
         self.assertFalse(any("'issue'" in w for w in result.warnings))
 
