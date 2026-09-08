@@ -85,6 +85,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 
 - aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/domain-terms.md`・`docs/adr/INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
 - aidd（決定 9）: `shared/rules/common.md` の記録の配置、`.claude/skills/adr/workflow.md`、`review/acceptance.md`、`shared/scripts/adr_index.py`（`--vocab` の削除）と対応するテスト、ADR-0002 の `amended_by`
+- aidd（2026-09-09 main 取り込み）: 本 ADR を 0003 から 0008 へ改番（main に stacked PR の ADR-0003〜0007 が先にマージされたため。連番重複は後にマージする側が改番する規約）。ADR-0003〜0007 に topic `workflow`（新設）・summary・関係リンク（0007 supersedes 0003 / 0005、0006 supersedes 0004、0004 amends 0003、0007 considered 0006）を遡及付与。決定 3 の例外（移行）として扱う
 - aidd（2026-09-07 レビュー反映）: `docs/domain-terms.md`（`docs/adr/README.md` から移動）、`shared/templates/domain-terms-template.md`（新設）、テンプレートの `summary` / `considered` と関係リンクの任意化、スクリプトの BOM・自己参照・CRLF・見出し抽出・必須項目・網羅検査、`CLAUDE.md` の Test command を `TODO:` に戻し aidd 自身のコマンドは `README.md` へ
 - aidd（追加）: `docs/design/0001-dev-phase-decomposition.md` と `docs/design/intent-driven-development.md` の置き換え規約の記述（ADR に限定）、`README.md` の構成表、`docs/manual.md`、`.claude/skills/retrospective/workflow.md`（見直しトリガー (c) の受け皿）、`CLAUDE.md` の Test command、`.gitignore`
 - 利用側（remosys-context ハブ）: `conventions/context-format.md` の ADR 向け status 語彙の分離と、`services/<name>/adr/` を許す記述の削除（いずれもハブ側の P3 判断）、`system/adr/` の既存 10 本と `services/remosys-data-processor/adr/0001`（2026-09-09 に origin/main で確認。system 側の 0001 と番号が衝突するため、決定 9 の統合はリネームと参照修正を伴う）への topic・summary・considered の付与と見出し・status の統一、`system/domain-terms.md` / `system/adr/INDEX.md` の新設。[clachic/remosys-context#79](https://github.com/clachic/remosys-context/issues/79) で行う。移行完了までは決定 5 の未移行扱いで照合が省略される
@@ -110,4 +111,4 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 - [2026-09-09] AI（レビュー担当）: 再レビューで 19 件解消、4 件部分解消（C1 網羅検査は新 topic を名乗る ADR と読まずに列挙した ADR を止められない / C2 旧 ADR 本文 status の矛盾は設計上の受容 / B1 手書き INDEX.md のその後 / B7 再生成手順のプレースホルダ）、新規 Minor 10 件を報告
 - [2026-09-09] AI: 3 視点（利用側・長期記録・実装）の agent 議論で結論。C1 は機械対策（新 topic の ADR に全有効 ADR を要求する案・語彙表追加コミットの検査案）を、列挙の量産と誤検知のため不採用とし、決定 1 の断定を撤回して限界を明記。C2 はトレードオフに帰結として記録。B1 は INDEX.md を書かない規約に。Minor 2〜5・8〜10 はマージ前に修正、B7・Minor 1・6・7 はマージ後
 - [2026-09-09] AI: 利用側視点の agent がハブの実態を確認。origin/main には system ADR 10 本と `services/remosys-data-processor/adr/0001` があり、09-07 の議論ログ「services は 1 本も使われていない」はローカル clone が 15 コミット古かったための誤り（origin と同期してから調べるという common.md の原則に反した）。決定 9 は番号衝突が現実に起きている点でむしろ支持されるが、移行はリネームと参照修正を含む
-
+- [2026-09-09] AI: main に PR #20（stacked PR）の ADR-0003〜0007 が先にマージされ連番が衝突。本 ADR を 0008 へ改番し、5 本に frontmatter を遡及付与して索引に載せた。summary は各 ADR の決定内容から要約したもので、原著者の確認は未了（🟡）

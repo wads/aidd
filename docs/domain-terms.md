@@ -2,7 +2,7 @@
 type: overview
 scope: all
 status: accepted
-updated: 2026-09-07
+updated: 2026-09-09
 ---
 
 # 用語と判断領域（domain terms）
@@ -17,3 +17,4 @@ ADR の frontmatter `topic` に使える値は下の「判断領域」表に限�
 |---|---|
 | `records` | 記録・開発運用の決め方（ADR・設計書・Issue の置き場と書き方、skill の構成） |
 | `tooling` | 開発ツール・ハーネスの選定と配置（Claude Code / Codex など実行環境に依存する判断） |
+| `workflow` | 開発フローと PR 運用の決め方（stacked PR、マージ順序、再ゲートの規則。記録の置き場・書き方は `records`） |

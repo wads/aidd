@@ -12,6 +12,14 @@
 
 - [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0008
 
+## workflow · 開発フローと PR 運用の決め方（stacked PR、マージ順序、再ゲートの規則。記録の置き場・書き方は `records`）
+
+- [ADR-0006 積み替え後は判定を行わず常に再ゲートする](0006-always-regate-after-restack.md): 積み替え・base 付け替え後は差分の変化を判定せず、人間チェック直前に常に再ゲートする · accepted · supersedes 0004
+- [ADR-0007 stacked PR の機構を GitHub ネイティブ機能（gh stack）に委ねる](0007-adopt-github-native-stacked-prs.md): stacked PR の機構を GitHub ネイティブの gh stack に委ね、操作手順は公式 gh-stack skill を単一の正とする · accepted · supersedes 0003, 0005
+
 ## 失効
 
 - [ADR-0001 Claude Code と Codex 向けに skill 配置を `.agents/skills/` へ再編する](0001-restructure-skills-for-codex-and-claude.md) · superseded by 0002
+- [ADR-0003 stacked PR 運用を git 標準機能 + gh で構成する](0003-stacked-pr-with-native-git.md) · superseded by 0007
+- [ADR-0004 積み替え後の diff 不変判定を変更行の比較で行う](0004-diff-unchanged-by-changed-lines.md) · superseded by 0006
+- [ADR-0005 マージ順序を draft 状態で機械的に強制する](0005-draft-guard-for-merge-order.md) · superseded by 0007
