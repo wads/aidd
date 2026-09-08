@@ -224,6 +224,29 @@ class FrontmatterFormats(AdrIndexCase):
 
         self.assertEqual(adr_index.run(d).errors, [])
 
+    def test_column_zero_comment_line_inside_block_list_is_ignored(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", textwrap.dedent("""\
+            ---
+            type: adr
+            scope: all
+            updated: 2026-09-04
+            summary: s
+            status: accepted
+            topic:
+              - records
+            # 補足: 分類中
+              - platform
+            ---
+            # [ADR-0001] x
+            """))
+
+        result = adr_index.run(d)
+
+        self.assertEqual(result.errors, [])
+        self.assertEqual(result.warnings, [])
+        self.assertIn("ADR-0001", section(result.index, "platform"))
+
     def test_missing_frontmatter_is_a_dedicated_error(self):
         d = self.make_dir()
         self.write(d, "0001-a.md", "# [ADR-0001] x\n\n本文\n")
@@ -315,6 +338,26 @@ class Validation(AdrIndexCase):
 
         for key in ("type", "scope", "updated", "summary"):
             self.assertEqual(len([e for e in errors if e.startswith("ADR-0001:") and key in e]), 1, key)
+
+    def test_empty_status_says_missing_not_bracket(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "x").replace("status: accepted", "status:"))
+
+        errors = adr_index.run(d).errors
+
+        self.assertTrue(any(e.startswith("ADR-0001:") and "status が無い" in e for e in errors))
+        self.assertFalse(any("[]" in e for e in errors))
+
+    def test_unknown_key_is_warned_with_a_hint_but_not_an_error(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "x", supercedes="[]", deciders="[a]"))
+
+        result = adr_index.run(d)
+
+        self.assertEqual(result.errors, [])
+        self.assertTrue(any("'supercedes'" in w and "'supersedes'" in w for w in result.warnings))
+        self.assertTrue(any("'deciders'" in w and "独自キー" in w for w in result.warnings))
+        self.assertFalse(any("'issue'" in w for w in result.warnings))
 
     def test_wrong_type_and_malformed_updated_are_errors(self):
         d = self.make_dir()
@@ -554,6 +597,15 @@ class TermsLocation(AdrIndexCase):
 
         self.assertEqual(result.errors, [])
         self.assertFalse(result.skipped)
+
+    def test_empty_terms_argument_is_an_error_not_the_default(self):
+        d = self.make_dir()
+        self.write(d, "0001-a.md", adr("0001", "x"))
+
+        result = adr_index.run(d, terms="")
+
+        self.assertFalse(result.skipped)
+        self.assertTrue(any("--terms" in e for e in result.errors))
 
     def test_explicit_terms_path_that_does_not_exist_is_an_error_not_a_skip(self):
         d = self.make_dir(vocab=None)

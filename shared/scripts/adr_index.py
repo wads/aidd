@@ -12,9 +12,11 @@ topic の語彙表は既定で ADR_DIR の親の domain-terms.md（--terms で�
 語彙表が読めない、INDEX.md があるのに語彙表が無い、語彙表に topic 表が無い。
 照合で誤りがあれば INDEX.md を書かず終了コード 1 を返す。--check は書かずに INDEX.md の陳腐化だけを検査する。
 frontmatter は 1 行の `key: value`、行内リスト `[a, b]`、ブロックリスト（次行以降の `- item`）、行末の ` # コメント` に対応する。
-先頭の BOM と空行は無視する。関係リンクの 4 フィールドと considered は関係があるときだけ書けばよい。
+先頭の BOM と空行、列 0 の `#` 行は無視する。引用符は値を保護しない（`"A # B"` も ` # ` 以降が落ちる）。
+未知のキーは warning（スペルミスの検出。独自キーは無視してよい）。関係リンクの 4 フィールドと considered は関係があるときだけ書けばよい。
 """
 import argparse
+import difflib
 import os
 import re
 import sys
@@ -26,6 +28,7 @@ RELATIONS = (("supersedes", "superseded_by"), ("amends", "amended_by"))
 LINK_KEYS = ("supersedes", "superseded_by", "amends", "amended_by", "considered")
 COVERAGE_KEYS = ("supersedes", "amends", "considered")
 REQUIRED_TEXT = ("type", "scope", "updated", "summary")
+KNOWN_KEYS = REQUIRED_TEXT + ("status", "topic", "issue") + LINK_KEYS
 SKEW_HIGH = 10
 INDEX_NAME = "INDEX.md"
 TERMS_NAME = "domain-terms.md"
@@ -78,6 +81,8 @@ def split_frontmatter(text):
         i += 1
         if line.strip() == "---":
             return data, lines[i:]
+        if line.lstrip().startswith("#"):
+            continue
         line = COMMENT.sub("", line.rstrip())
         if not line.strip():
             continue
@@ -106,7 +111,7 @@ def _unquote(value):
 
 def _parse_value(value):
     if not value:
-        return []
+        return ""
     if value.startswith("[") and value.endswith("]"):
         return [_unquote(v) for v in value[1:-1].split(",") if v.strip()]
     return _unquote(value)
@@ -211,8 +216,15 @@ def validate(adrs, vocab_names):
             errors.append(f"{a.label}: type '{a.fm.get('type')}' は不正（adr）")
         if isinstance(a.fm.get("updated"), str) and a.fm.get("updated") and not DATE.match(a.fm["updated"]):
             errors.append(f"{a.label}: updated '{a.fm['updated']}' は YYYY-MM-DD でない")
-        if a.status not in STATUSES:
+        if not a.status:
+            errors.append(f"{a.label}: status が無い（{' / '.join(STATUSES)} のいずれか）")
+        elif a.status not in STATUSES:
             errors.append(f"{a.label}: status '{a.status}' は不正（{' / '.join(STATUSES)} のいずれか）")
+        for key in a.fm:
+            if key not in KNOWN_KEYS:
+                near = difflib.get_close_matches(key, KNOWN_KEYS, n=1, cutoff=0.8)
+                hint = f"'{near[0]}' の誤り？" if near else "独自キーなら無視してよい"
+                warnings.append(f"{a.label}: 未知のキー '{key}'（{hint}）")
         if not a.topics:
             errors.append(f"{a.label}: topic が無い")
         for t in a.topics:
@@ -303,10 +315,10 @@ def run(adr_dir, terms=None, write=False):
     except OSError as e:
         result.errors.append(f"ADR ディレクトリ {adr_dir} を読めない（{e.strerror}）")
         return result
-    terms_file = terms or os.path.join(os.path.dirname(os.path.abspath(adr_dir)), TERMS_NAME)
+    terms_file = terms if terms is not None else os.path.join(os.path.dirname(os.path.abspath(adr_dir)), TERMS_NAME)
     if not os.path.isfile(terms_file):
         if terms is not None:
-            result.errors.append(f"--terms の語彙表 {terms_file} が無いかファイルではない")
+            result.errors.append(f"--terms の語彙表 '{terms_file}' が無いかファイルではない")
         elif INDEX_NAME in entries:
             result.errors.append(f"{INDEX_NAME} があるのに語彙表 {terms_file} が無い（移行済みなら語彙表を戻す）")
         elif os.path.exists(terms_file):

@@ -4,10 +4,10 @@ scope: [対象サービス、または system / all]
 status: proposed | accepted | superseded | deprecated
 updated: YYYY-MM-DD
 topic: [判断領域タグ。records_root の domain-terms.md の表から選ぶ。複数可]
-summary: [決定の要旨を一行。INDEX.md に出る。何を決めたかが索引だけで分かる文に]
-considered: [同 topic の既存 ADR のうち、読んで「無関係」と判断した番号。置き換え・補足するものは下の supersedes / amends に]
-issue: [任意。対象 Issue（例 owner/repo#123）。スクリプトは検証しない]
-# 関係があるときだけ書く（無いフィールドは省略してよい）:
+summary: [決定の要旨を一行。INDEX.md に出る。何を決めたかが索引だけで分かる文に。` # `（空白-#-空白）以降はコメントとして切られ、引用符でも保護されない]
+# 関係があるときだけ書く（無いフィールドは省略する。行ごと消す）:
+# considered: [同 topic の既存 ADR のうち、読んで「無関係」と判断した番号。同 topic で自分より若い有効 ADR があれば supersedes / amends / considered のどれかに必ず書く]
+# issue: [任意。対象 Issue（例 owner/repo#123）。スクリプトは検証しない]
 # supersedes: [置き換える旧 ADR の番号。旧 ADR 側には superseded_by と status: superseded を追記する]
 # superseded_by: [この ADR を置き換えた新 ADR の番号]
 # amends: [補足・部分修正する ADR の番号。補足先の決定は有効のまま残る。補足先には amended_by を追記する]
