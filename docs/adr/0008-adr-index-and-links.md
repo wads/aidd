@@ -55,7 +55,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 1. **frontmatter フィールドの追加**（テンプレート `shared/templates/adr-template.md`）
    - `topic`: 判断領域タグのリスト。複数可。値は語彙表 `domain-terms.md`（決定 4）に定義されたものに限る
    - `summary`: 決定の要旨一行。必須。INDEX.md の行に出し、索引だけでトリアージできるようにする（同 topic の ADR を全部読む側のコンテキストを抑える）
-   - `considered`: 同 topic の既存 ADR のうち、読んで「無関係」と判断した番号。同 topic で自分より若い番号の有効 ADR は、`supersedes` / `amends` / `considered` のいずれかに必ず現れなければならない（スクリプトが検査する）。この検査が止めるのは「同 topic を名乗りながら先行 ADR を挙げていない」ことだけで、宣言の中身（本当に読んだか、無関係の判断が正しいか）は見ない。新しい topic だけを名乗った ADR や、読まずに番号を列挙した ADR は通る。topic の選び方と宣言の中身は critical-gate のレンズ（決定 6）で人間と agent が見る
+   - `considered`: 同 topic の既存 ADR のうち、読んだうえで置き換えも補足もしない番号（無関係のほか、依存して併存する関係も含む）。同 topic で自分より若い番号の有効 ADR は、`supersedes` / `amends` / `considered` のいずれかに必ず現れなければならない（スクリプトが検査する）。この検査が止めるのは「同 topic を名乗りながら先行 ADR を挙げていない」ことだけで、宣言の中身（本当に読んだか、無関係の判断が正しいか）は見ない。新しい topic だけを名乗った ADR や、読まずに番号を列挙した ADR は通る。topic の選び方と宣言の中身は critical-gate のレンズ（決定 6）で人間と agent が見る
    - `supersedes` / `superseded_by`: 置き換え（旧決定は全体が失効）。新 ADR が `supersedes`、旧 ADR が `superseded_by` を持ち、必ず双方向にする
    - `amends` / `amended_by`: 補足・部分修正（旧決定は有効のまま一部を追加・修正）。同じく双方向。**旧 ADR の一部だけを失効させる場合は `supersedes` でなく `amends`** を使う（`supersedes` は旧 ADR を丸ごと有効索引から外すため、生き残った決定が消える）
    - 関係リンク 4 つと `considered` は関係があるときだけ書く（空リストの行は不要）
@@ -85,7 +85,7 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 
 - aidd: `shared/templates/adr-template.md`、`shared/rules/common.md`、`.claude/skills/adr/workflow.md`、`critical-gate/lenses.md`、`review/acceptance.md`、`context-snapshot/workflow.md`、`implementation-plan/template.md`、`shared/scripts/`（新設）、`docs/domain-terms.md`・`docs/adr/INDEX.md`（新設）、既存 ADR-0001 / 0002 の frontmatter
 - aidd（決定 9）: `shared/rules/common.md` の記録の配置、`.claude/skills/adr/workflow.md`、`review/acceptance.md`、`shared/scripts/adr_index.py`（`--vocab` の削除）と対応するテスト、ADR-0002 の `amended_by`
-- aidd（2026-09-09 main 取り込み）: 本 ADR を 0003 から 0008 へ改番（main に stacked PR の ADR-0003〜0007 が先にマージされたため。連番重複は後にマージする側が改番する規約）。ADR-0003〜0007 に topic `workflow`（新設）・summary・関係リンク（0007 supersedes 0003 / 0005、0006 supersedes 0004、0004 amends 0003、0007 considered 0006）を遡及付与。決定 3 の例外（移行）として扱う
+- aidd（2026-09-09 main 取り込み）: 本 ADR を 0003 から 0008 へ改番（main に stacked PR の ADR-0003〜0007 が先にマージされたため。連番重複は後にマージする側が改番する規約）。ADR-0003〜0007 に topic `workflow`（新設）・summary・関係リンク（0007 supersedes 0003 / 0005、0006 supersedes 0004、0004 amends 0003、0007 considered 0006。0005 は 0003 の決定を変えず方式を追加しただけなので amends にしない）を遡及付与。09-08 に認めた移行例外を本件へ拡張（2026-09-09 人間承認）
 - aidd（2026-09-07 レビュー反映）: `docs/domain-terms.md`（`docs/adr/README.md` から移動）、`shared/templates/domain-terms-template.md`（新設）、テンプレートの `summary` / `considered` と関係リンクの任意化、スクリプトの BOM・自己参照・CRLF・見出し抽出・必須項目・網羅検査、`CLAUDE.md` の Test command を `TODO:` に戻し aidd 自身のコマンドは `README.md` へ
 - aidd（追加）: `docs/design/0001-dev-phase-decomposition.md` と `docs/design/intent-driven-development.md` の置き換え規約の記述（ADR に限定）、`README.md` の構成表、`docs/manual.md`、`.claude/skills/retrospective/workflow.md`（見直しトリガー (c) の受け皿）、`CLAUDE.md` の Test command、`.gitignore`
 - 利用側（remosys-context ハブ）: `conventions/context-format.md` の ADR 向け status 語彙の分離と、`services/<name>/adr/` を許す記述の削除（いずれもハブ側の P3 判断）、`system/adr/` の既存 10 本と `services/remosys-data-processor/adr/0001`（2026-09-09 に origin/main で確認。system 側の 0001 と番号が衝突するため、決定 9 の統合はリネームと参照修正を伴う）への topic・summary・considered の付与と見出し・status の統一、`system/domain-terms.md` / `system/adr/INDEX.md` の新設。[clachic/remosys-context#79](https://github.com/clachic/remosys-context/issues/79) で行う。移行完了までは決定 5 の未移行扱いで照合が省略される
@@ -111,4 +111,5 @@ ADR は追記専用の判断履歴であり、本数が増えるほど「どの�
 - [2026-09-09] AI（レビュー担当）: 再レビューで 19 件解消、4 件部分解消（C1 網羅検査は新 topic を名乗る ADR と読まずに列挙した ADR を止められない / C2 旧 ADR 本文 status の矛盾は設計上の受容 / B1 手書き INDEX.md のその後 / B7 再生成手順のプレースホルダ）、新規 Minor 10 件を報告
 - [2026-09-09] AI: 3 視点（利用側・長期記録・実装）の agent 議論で結論。C1 は機械対策（新 topic の ADR に全有効 ADR を要求する案・語彙表追加コミットの検査案）を、列挙の量産と誤検知のため不採用とし、決定 1 の断定を撤回して限界を明記。C2 はトレードオフに帰結として記録。B1 は INDEX.md を書かない規約に。Minor 2〜5・8〜10 はマージ前に修正、B7・Minor 1・6・7 はマージ後
 - [2026-09-09] AI: 利用側視点の agent がハブの実態を確認。origin/main には system ADR 10 本と `services/remosys-data-processor/adr/0001` があり、09-07 の議論ログ「services は 1 本も使われていない」はローカル clone が 15 コミット古かったための誤り（origin と同期してから調べるという common.md の原則に反した）。決定 9 は番号衝突が現実に起きている点でむしろ支持されるが、移行はリネームと参照修正を含む
-- [2026-09-09] AI: main に PR #20（stacked PR）の ADR-0003〜0007 が先にマージされ連番が衝突。本 ADR を 0008 へ改番し、5 本に frontmatter を遡及付与して索引に載せた。summary は各 ADR の決定内容から要約したもので、原著者の確認は未了（🟡）
+- [2026-09-09] AI: main に PR #20（stacked PR）の ADR-0003〜0007 が先にマージされ連番が衝突。本 ADR を 0008 へ改番し、5 本に frontmatter を遡及付与して索引に載せた。summary は各 ADR の決定内容から要約した
+- [2026-09-09] Human: main 由来の ADR-0003〜0007 への遡及付与（topic / summary / 関係リンク）を、09-08 の移行例外の拡張として承認。`considered` の定義を「読んだが置き換えも補足もしない番号」に広げることを採用（ADR-0007 → 0006 の依存・併存関係が旧定義「無関係」に当てはまらなかったため）
