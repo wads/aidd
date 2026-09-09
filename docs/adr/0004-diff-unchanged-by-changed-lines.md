@@ -2,7 +2,11 @@
 type: adr
 scope: all
 status: superseded
-updated: 2026-09-05
+updated: 2026-09-09
+topic: [workflow]
+summary: 積み替え前後の diff 不変判定を、変更行とファイル名ヘッダなど意味のある行だけを抽出した比較で行う
+amends: [0003]
+superseded_by: [0006]
 ---
 
 # [ADR-0004] 積み替え後の diff 不変判定を変更行の比較で行う

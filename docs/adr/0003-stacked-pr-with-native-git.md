@@ -2,7 +2,11 @@
 type: adr
 scope: all
 status: superseded
-updated: 2026-09-06
+updated: 2026-09-09
+topic: [workflow]
+summary: stacked PR を git 標準機能（rebase --update-refs）と gh だけで構成し、積み替えは連鎖付け替えで一括、再ゲート免除判定は range-diff で行う
+superseded_by: [0007]
+amended_by: [0004]
 ---
 
 # [ADR-0003] stacked PR 運用を git 標準機能 + gh で構成する

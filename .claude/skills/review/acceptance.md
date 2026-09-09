@@ -81,6 +81,7 @@ PR 説明に以下の必須セクションをそろえる。該当がない場�
 - PR・Issue に書いた「確認済み・実施済み・green」等の事実主張に、対応する実行記録があるか（`common.md` の証拠つき報告）
 - PR 必須セクションがそろっているか（§4。スタック時の下位 PR では、集約する節が「最終 PR で実施」と参照記載されていれば足りる）
 - （スタック時）マージ対象を明示指定しているか（引数なしの一括マージでないか）、対象とその下の PR がすべて再ゲート通過・チェック済みか、上位が draft のままか、直前のマージが既定ブランチへ着地し上位の積み替えが済んでいるか（`stacked-pr` §5〜§6）
+- ADR または語彙表 `domain-terms.md` を追加・変更した場合、リポジトリルートで `python3 {aidd_root}/shared/scripts/adr_index.py {adr_dir} --check`（`{adr_dir}` は `{records_root}/adr`、ハブは `{records_root}/system/adr`）が `ok`（INDEX.md が最新で、必須項目・語彙表・リンク・status・網羅宣言＝同 topic の若い番号の有効 ADR が supersedes / amends / considered に現れること、の error が無い）か。実行出力を PR に転記する。通過条件は次の 3 つのいずれか: (1) `ok`、(2) `skipped`（語彙表も INDEX.md も無い未移行ディレクトリ）で、移行 Issue が open で実在する（語彙表をこの PR で作るなら (1) に戻す）、(3) python3 が無い環境で、語彙表に無い topic・双方向リンク・網羅宣言を手作業で照合し、確認した範囲と結果を PR に明記する（INDEX.md は書かない。python3 のある環境で次に ADR に触れる人が生成してコミットする。`--check` はバイト完全一致なので手書きの INDEX.md は以後 error になる）。warning（未知キー・分割警告）も出力ごと転記する
 
 ## フェーズ間の戻り
 

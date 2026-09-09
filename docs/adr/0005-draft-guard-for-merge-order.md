@@ -2,7 +2,10 @@
 type: adr
 scope: all
 status: superseded
-updated: 2026-09-06
+updated: 2026-09-09
+topic: [workflow]
+summary: 最下段以外の PR は draft のまま保ち、最下段になったときだけ ready 化してマージ順序を機械的に強制する
+superseded_by: [0007]
 ---
 
 # [ADR-0005] マージ順序を draft 状態で機械的に強制する

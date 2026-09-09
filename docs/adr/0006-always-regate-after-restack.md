@@ -2,7 +2,10 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-05
+updated: 2026-09-09
+topic: [workflow]
+summary: 積み替え・base 付け替え後は差分の変化を判定せず、人間チェック直前に常に再ゲートする
+supersedes: [0004]
 ---
 
 # [ADR-0006] 積み替え後は判定を行わず常に再ゲートする
