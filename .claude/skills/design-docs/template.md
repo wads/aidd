@@ -2,7 +2,7 @@
 
 ファイル名: `{records_root}/design/{連番}-short-title.md`（例: `0007-saved-search.md`。連番 4 桁 0 埋め、service/system 分割は Binding に従う）
 
-```md
+````md
 # 設計: {タイトル}
 
 - Issue: {Issue 番号}
@@ -60,7 +60,7 @@
 ## 未確定事項
 
 {残っている未決と、誰がいつ決めるか}
-```
+````
 
 ルール:
 

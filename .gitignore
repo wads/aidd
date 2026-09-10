@@ -32,5 +32,5 @@ __pycache__/
 # Claude Code
 .claude/settings.local.json
 
-# context-snapshot の生成ビュー（使い捨て）
+# context-snapshot の生成ビュー（ローカルの控え。正は Artifact の URL）
 .snapshots/
