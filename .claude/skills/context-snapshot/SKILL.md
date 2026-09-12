@@ -20,7 +20,7 @@ user-invocable: true
 
 ## 出力
 
-- HTML スナップショット 1 ファイル（生成日付き）。Artifact（クロード上の公開ページ。同じファイルを再公開すると同じ URL の内容が更新され、版履歴が残る）として公開し、同じ開発単位では**同じ URL を判断ポイントごとに更新**する。URL は Issue / PR に貼る。ローカルには `.snapshots/` に連番で途中版も残す（`workflow.md` §4）。Artifact が使えない環境（Codex 等）の代替は未定（ADR-0009）
+- HTML スナップショット 1 ファイル（生成日付き）。Artifact（クロード上の公開ページ。同じファイルを再公開すると同じ URL の内容が更新され、版履歴が残る）として公開し、同じ開発単位では**同じ URL を判断ポイントごとに更新**する。URL は Issue / PR に貼る。ローカルには `.snapshots/` に連番で途中版も残す（`workflow.md` §4）。Artifact が使えない環境（Codex 等）ではローカルの控えを正本とし、パス提示 + Issue コメントで代替する（`workflow.md` §4）
 
 ## 扱う Intent
 
