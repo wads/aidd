@@ -10,7 +10,7 @@
 
 - Issue は `product-intent` でタイプを確定して作成する（feature / bugfix / hotfix / refactoring / chore / spike）
 - 着手は `dev` から。タイプ別ルートに従い各フェーズ skill を実行する
-- 成果物の深さは判断駆動: ADR・設計書は書くべき判断が生じたときだけ作る
+- 成果物の深さは判断駆動: ADR・設計書は書くべき判断が生じたときだけ作る。ただし 構造基準（テスト以外のコードの新設、または既存の責務分割・依存方向の変更） に当たる feature / refactoring では設計判断が生じたとみなして設計書を必ず作る（その変更で ADR を作らない判断も人間に提示して確定する）。構造基準に当たらない変更で設計書を作らない場合も「設計書なし」を人間に提示して確定する（`design-docs`、ADR-0009）
 - 短期コンテキストは PR / Issue へ、長期記録（ADR・設計書・テスト）は records_root へ。マージ前に短期コンテキストの昇格を判定する
 
 ## フェーズ間の戻りと Intent Delta
@@ -46,6 +46,7 @@
 
 - ADR → `adr/` 1 か所に集約する。Binding に `service` があっても分割せず、ハブ構成では `system/adr/` にまとめる。サービス軸は frontmatter の `scope` で表す（ADR はどのサービスからも引けることが価値。判断の経緯は ADR-0008）
 - 設計書 → `design/`。`service` 指定時のサービス固有設計は `services/{service}/design/`、横断は `system/design/`（設計は 1 サービスの実装構造でローカル性が本物のため、ADR とは扱いを分ける）
+- runbook（実環境への適用手順・切り戻し） → `runbook/`（`service` 指定時は `services/{service}/runbook/`、横断は `system/runbook/`）
 - すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する。ADR の `type` は `adr`（他の文書の値は利用側の規約に従う）
 - ADR にはさらに `topic`（判断領域タグ）と `summary`（要旨一行）を必須で付け、同 topic の既存 ADR との関係を `supersedes` / `amends`（双方向）か `considered`（読んだが無関係）で宣言する。status は `proposed` / `accepted` / `superseded` / `deprecated` に限る。旧 ADR に許す編集は frontmatter（status・逆リンク・updated）のみで本文には触れない
 - topic の語彙表は `{records_root}/domain-terms.md`（ハブは `system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）、有効 ADR の索引は ADR ディレクトリの `INDEX.md`（生成物）。生成と照合は `{aidd_root}/shared/scripts/adr_index.py` をリポジトリルートで実行する。書き方・検査内容・未移行の扱いは `adr` skill と `review/acceptance.md` §7 に従う（判断の経緯は ADR-0008）

@@ -7,15 +7,18 @@
 
 - [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0008
 - [ADR-0008 ADR の検索性と置き換え関係の機械可読化](0008-adr-index-and-links.md): ADR に topic・要旨・双方向リンクを持たせ、語彙表 domain-terms.md と生成索引 INDEX.md をスクリプトで照合する。ADR ディレクトリは records_root ごとに 1 つ · accepted · amends 0002
+- [ADR-0009 構造基準による設計協議の必須化と snapshot の常時公開](0009-design-phase-and-snapshot-publishing.md): 構造基準（コード新設・責務分割や依存方向の変更）で P4 設計を必須化し設計書に構造図・命名・負債方針を持たせる。snapshot は Artifact で 1 URL を判断ポイントごとに更新し、ゲートに設計書欠落と負債増大のレンズを足す · accepted
 
 ## tooling · 開発ツール・ハーネスの選定と配置（Claude Code / Codex など実行環境に依存する判断）
 
 - [ADR-0002 aidd 汎用テンプレートへの適応](0002-adapt-as-aidd-template.md): 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する · accepted · supersedes 0001 · amended_by 0008
+- [ADR-0009 構造基準による設計協議の必須化と snapshot の常時公開](0009-design-phase-and-snapshot-publishing.md): 構造基準（コード新設・責務分割や依存方向の変更）で P4 設計を必須化し設計書に構造図・命名・負債方針を持たせる。snapshot は Artifact で 1 URL を判断ポイントごとに更新し、ゲートに設計書欠落と負債増大のレンズを足す · accepted
 
 ## workflow · 開発フローと PR 運用の決め方（stacked PR、マージ順序、再ゲートの規則。記録の置き場・書き方は `records`）
 
 - [ADR-0006 積み替え後は判定を行わず常に再ゲートする](0006-always-regate-after-restack.md): 積み替え・base 付け替え後は差分の変化を判定せず、人間チェック直前に常に再ゲートする · accepted · supersedes 0004
 - [ADR-0007 stacked PR の機構を GitHub ネイティブ機能（gh stack）に委ねる](0007-adopt-github-native-stacked-prs.md): stacked PR の機構を GitHub ネイティブの gh stack に委ね、操作手順は公式 gh-stack skill を単一の正とする · accepted · supersedes 0003, 0005
+- [ADR-0009 構造基準による設計協議の必須化と snapshot の常時公開](0009-design-phase-and-snapshot-publishing.md): 構造基準（コード新設・責務分割や依存方向の変更）で P4 設計を必須化し設計書に構造図・命名・負債方針を持たせる。snapshot は Artifact で 1 URL を判断ポイントごとに更新し、ゲートに設計書欠落と負債増大のレンズを足す · accepted
 
 ## 失効
 
