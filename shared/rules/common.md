@@ -45,6 +45,7 @@
 
 - ADR → `adr/`。`service` 指定時のサービス固有判断は `services/{service}/adr/`、複数サービス横断は `system/adr/`
 - 設計書 → `design/`（同上のルールで `services/{service}/`・`system/`）
+- runbook（実環境への適用手順・切り戻し） → `runbook/`（同上のルールで `services/{service}/`・`system/`）
 - すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する
 
 宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo）として扱う。
