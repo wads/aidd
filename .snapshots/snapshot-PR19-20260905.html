@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>Context Snapshot: PR #19 ADR の検索性と置き換え関係の機械可読化</title>
+<style>
+body{font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;max-width:960px;margin:2rem auto;padding:0 1.2rem;line-height:1.65;color:#222}
+h1{font-size:1.5rem;border-bottom:2px solid #333;padding-bottom:.3rem}h2{font-size:1.2rem;margin-top:2.2rem;border-left:5px solid #4a6fa5;padding-left:.6rem}h3{font-size:1.02rem;margin-top:1.4rem}
+.meta{background:#fff7e0;border:1px solid #e0c060;padding:.6rem .9rem;font-size:.9rem}
+.decide{background:#eef4ff;border:1px solid #9db4dd;padding:.8rem 1rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.6rem 0}th,td{border:1px solid #bbb;padding:.35rem .5rem;vertical-align:top;text-align:left}th{background:#f0f0f0}
+code{background:#f3f3f3;padding:0 .25rem;border-radius:3px;font-size:.9em}pre{background:#f7f7f7;border:1px solid #ddd;padding:.7rem;overflow-x:auto;font-size:.85rem;line-height:1.45}
+.m{font-size:.85em}.ok{color:#1a7f37}.ng{color:#b42318}details{margin:.5rem 0}summary{cursor:pointer;font-weight:600}
+</style></head><body>
+<h1>Context Snapshot: PR #19 ADR の検索性と置き換え関係の機械可読化</h1>
+<div class="meta">生成: 2026-09-09（ブランチ <code>feat/adr-index-and-links</code> HEAD db567a0）。これは生成ビューであり、最新の正は記録側（<a href="https://github.com/wads/aidd/pull/19">PR #19</a>・<code>docs/adr/0008-adr-index-and-links.md</code>・<code>shared/rules/common.md</code>・テスト）にある。🔵 = 記録・コードから機械的に導出、🟡 = AI の解釈を含む。</div>
+
+<h2>1. Goal</h2>
+<p>ADR が増えても「どの決定が今有効か」「この判断領域の ADR はどれか」を機械的に引け、置き換え・補足の関係を両側から辿れ、既存決定との衝突に気づける状態にする。</p>
+
+<h2>2. 今回の判断（受入れ判断）</h2>
+<div class="decide">
+<p><strong>求める判断</strong>: PR #19 を aidd の <code>main</code> へ受け入れるか。critical-gate はフル版 4 回 + 外部レビュー（2026-09-07、AI 担当）+ 再ゲート 1 回を経て、Critical は解消済み（付録 9-3 と PR コメント）。</p>
+<p><strong>外部レビュー後に確定した判断</strong>（用語: considered = 同 topic の既存 ADR を読んで無関係と判断した番号の欄 / 網羅規則 = 同 topic の若い番号の有効 ADR がすべて supersedes・amends・considered に現れるかの機械検査 / ハブ移行 = remosys-context の既存 9 本を新規約に合わせる作業 #79）:</p>
+<ol>
+<li>語彙表は ADR ディレクトリの外 <code>{records_root}/domain-terms.md</code>（ハブは <code>system/domain-terms.md</code>）。README.md は人間向け説明に空ける</li>
+<li><code>summary</code>（要旨一行）を必須にし INDEX.md の行に出す。同 topic を全読みする側のコンテキストを索引で絞る</li>
+<li><code>considered</code> と網羅規則で「読まずに飛ばした」を機械検出する。移行時は一括記入になる負荷を受容（トレードオフに明記）</li>
+<li>決定 3（旧 ADR の frontmatter 編集は status・逆リンク・updated のみ）は狭いまま残し、本 PR と #79 の遡及付与は今回限りの例外。規約には書かない</li>
+<li>任意の <code>issue</code> 欄をテンプレートに追加</li>
+</ol>
+<p><strong>再レビュー（2026-09-09）で確定したこと</strong>: 網羅検査は「同 topic を名乗りながら先行 ADR を挙げていない」ことだけを止める（新 topic 経路と列挙経路は通る）と ADR-0008 に明記。旧 ADR 本文の status 欄の食い違いは決定 3 の帰結として受容。INDEX.md の手書きは不可（python3 のある環境で生成）。ハブの実態は system 10 本 + services 1 本で、移行に番号衝突の解消が加わる（#79 に反映）。</p>
+<p><strong>受入れ時に見る残論点</strong>:</p>
+<ol>
+<li>ADR-0008 は accepted のままマージ前に本文を修正した。「マージ前は draft、以後は amends」の線引きは未規約化</li>
+<li>INDEX.md 先頭の再生成手順はプレースホルダ（実パス展開は環境依存で <code>--check</code> が割れる）</li>
+<li>マージすると jrc の symlink 経由で ReMoSys に即時適用。ハブは未移行として skip（PR 本文の実行記録。ブランチのスクリプトで採取）</li>
+</ol>
+</div>
+
+<h2>3. 最新の意図（ADR-0008 の決定を受入れ条件として読む）🔵</h2>
+<p>Issue は無い（playbook 規約変更は PR 直接の前例 #15〜#17 と同じ扱い）。会話で確定した判断は ADR-0008 の決定 1〜8 に記録し、これを AC として扱う。</p>
+<table><tr><th>#</th><th>決定</th><th>確定した経緯</th></tr>
+<tr><td>1</td><td>frontmatter に <code>topic</code>（複数可）と双方向リンク <code>supersedes</code>/<code>superseded_by</code>/<code>amends</code>/<code>amended_by</code></td><td>用語の意味を確認のうえ合意</td></tr>
+<tr><td>2</td><td>status は <code>proposed</code>/<code>accepted</code>/<code>superseded</code>/<code>deprecated</code>。<code>active</code> は使わない</td><td>選択式（accepted 系 / active 系 / 両方許容）</td></tr>
+<tr><td>3</td><td>旧 ADR の編集は <code>status</code>・逆リンク・<code>updated</code> のみ。本文に触れない</td><td>選択式（frontmatter のみ / 冒頭注記も）</td></tr>
+<tr><td>4</td><td>ADR ディレクトリに <code>README.md</code>（手書き語彙表）と <code>INDEX.md</code>（生成物）。解決範囲は同一ディレクトリ内。services 側は <code>--vocab</code></td><td>「INDEX.md は ADR ディレクトリ内」の明示、ゲート後に同一ディレクトリ限定を選択</td></tr>
+<tr><td>5</td><td>スクリプトで生成・照合。error 4 系統で INDEX.md を書かない。skip は「語彙表も INDEX.md も無く <code>--vocab</code> 未指定」のみ</td><td>選択式（スクリプト / AI 生成 / 別 Issue）、ゲート 2・3 回目で skip の定義を絞る</td></tr>
+<tr><td>6</td><td>adr 手順 1 で同 topic の既存 ADR を読み置換/補足/無関係を宣言。critical-gate・review §7・context-snapshot・implementation-plan・retrospective を更新</td><td>初回提案どおり</td></tr>
+<tr><td>7</td><td>topic の見直しは 3 トリガー（合う topic が無い / 分割警告 / 振り返りで引けなかった）。1 本のみ警告は出さない</td><td>ゲート 1 回目後に選択式（廃止 / 閾値 / 即時）</td></tr>
+<tr><td>8</td><td>適用範囲は ADR のみ。設計書の Replaces 規約は変えない</td><td>ゲート 1 回目後に選択式（ADR 限定 / 設計書も）</td></tr>
+</table>
+
+<h2>4. 設計と構造</h2>
+<h3>4-1. 設計方針 🟡</h3>
+<ul>
+<li>手書きは各 ADR と語彙表だけ。索引は常に再生成できる従属物にして腐らせない</li>
+<li>語彙表と索引を別ファイルにするのは、生成時の照合相手を作るため（単一ファイルでは語彙表に無い topic を検出できない）</li>
+<li>照合は fail-closed。「証拠の不在」（README 無し）と「OS エラー」を区別し、後者は error にする（ゲート 3・4 回目で閉じた故障クラス）</li>
+<li>「引く」「衝突に気づく」「失効を知る」を人間の記憶からスクリプトと frontmatter に移す</li>
+</ul>
+<h3>4-2. ファイルの置き場 🔵</h3>
+<pre>
+aidd/
+├ shared/rules/common.md              Binding に aidd_root、ADR の frontmatter・語彙表・索引の規約
+├ shared/templates/adr-template.md    新フィールド 5 つ、status 4 値
+├ shared/scripts/adr_index.py         生成・照合スクリプト（標準ライブラリのみ）
+├ shared/scripts/test_adr_index.py    67 件（python3 -m unittest discover -s shared/scripts -p 'test_*.py'）
+├ .claude/skills/{adr,critical-gate,review,context-snapshot,implementation-plan,retrospective}/  手順の更新
+└ docs/adr/
+   ├ README.md   語彙表（手書き。records / tooling）
+   ├ INDEX.md    生成物
+   ├ 0001 (superseded, superseded_by 0002) / 0002 (supersedes 0001) / 0003 (本判断)
+</pre>
+<h3>4-3. スクリプトのデータの流れ 🔵（関数名は現物。行番号は HEAD 352f17b）</h3>
+<pre>
+adr_dir ─▶ run() :221
+   ├ isdir / listdir で存在・可読を確認（error）
+   ├ 語彙表: --vocab か adr_dir/README.md
+   │    無し & INDEX.md 無し & --vocab 未指定 → skipped（warning, exit 0）
+   │    それ以外の欠落 → error
+   ├ load_vocab() :97   見出し 1 列目が topic の表だけ読む（無ければ error）
+   ├ load_adrs() :119   NNNN-*.md の frontmatter（行内/ブロックリスト、行末コメント）と見出し
+   ├ validate() :148    status / topic / 双方向リンク / 不在参照 / 連番重複 → errors、10 本超 → warnings
+   └ render() :197      有効（proposed, accepted）を topic 別に、失効を末尾に
+main() :254  --check は書かずに INDEX.md と比較。error → exit 1、skipped → exit 0
+</pre>
+
+<h2>5. 技術判断 🔵</h2>
+<p><a href="../docs/adr/0008-adr-index-and-links.md">ADR-0008</a>（accepted）。採用: frontmatter の検索軸 + 双方向リンク + スクリプト生成の索引。棄却: AI が索引を生成（照合が読み落としに依存）、何もしない（AI 主担当では閾値が早い）、旧 ADR の digest（判断理由が失われる）。トレードオフ: 言語非依存のテンプレートに python3 が入る、フィールドが 5 つ増える、topic の粒度は書きながら決める。</p>
+
+<h2>6. 検証状態 🔵</h2>
+<table><tr><th>決定</th><th>検証</th><th>状態</th></tr>
+<tr><td>1・2（フィールド・status）</td><td>テンプレート diff、<code>test_unknown_status_is_an_error</code></td><td class="ok">green</td></tr>
+<tr><td>3（旧 ADR の編集範囲）</td><td>ADR-0001 diff（frontmatter のみ追加、本文注記は残置）</td><td class="ok">目視</td></tr>
+<tr><td>4（README/INDEX、同一ディレクトリ、--vocab）</td><td><code>IndexGeneration</code> 8 件、<code>test_vocab_can_be_read_from_another_directory</code></td><td class="ok">green</td></tr>
+<tr><td>5（照合・skip・--check・網羅）</td><td><code>Validation</code> 18、<code>FrontmatterFormats</code> 10、<code>Coverage</code> 7、<code>SkewWarnings</code> 5、<code>TermsLocation</code> 11、<code>CheckMode</code> 5。ゲート agent のミュータント注入（1〜5 回目）で負例の検出を確認</td><td class="ok">green</td></tr>
+<tr><td>6（skill の更新）</td><td>diff の目視。ゲート agent が接続を確認</td><td class="ok">目視</td></tr>
+<tr><td>7・8（見直しトリガー、ADR 限定）</td><td>規約の文言。design-docs skill が未変更で Replaces を保持</td><td class="ok">目視</td></tr>
+<tr><td>利用側ハブでの skip</td><td>jrc の <code>system/adr</code> に <code>--check</code> → <code>skipped</code> exit 0（作業環境で採取）</td><td>🟡 agent 環境では未再現</td></tr>
+</table>
+
+<h2>7. 注意が必要な点</h2>
+<ul>
+<li>🟡 ハブの <code>conventions/context-format.md</code> は全文書共通で <code>active | draft | superseded</code>。ADR 向け語彙の分離はハブ側の P3 判断（#79 に明記）</li>
+<li>🟡 <code>aidd_root</code> の既定 <code>.</code> は「symlink で取り込んでいる」前提。jrc はこの形</li>
+<li>未確定: <code>issue</code> フィールドの追加（残論点 2）</li>
+</ul>
+
+<h2>8. 昇格された記録 🔵</h2>
+<ul><li>ADR-0008（会話での判断 → 長期記録）</li><li><code>common.md</code> Project Binding 節（<code>aidd_root</code>、ADR の frontmatter・語彙表・索引の規約）</li><li>設計書 2 本の置き換え規約の記述を ADR 限定に修正、intent-driven の Delta に追記</li></ul>
+
+<h2>9. 付録: 作業記録</h2>
+<details open><summary>9-1. TODO リスト（最終状態）</summary>
+<ol>
+<li>✅ テンプレートと example に新フィールド・status 語彙</li>
+<li>✅ common.md の規約追記</li>
+<li>✅ adr / critical-gate / review / context-snapshot / implementation-plan の変更（後に retrospective も）</li>
+<li>✅ <code>adr_index.py</code> を TDD で作成（Red: import error → Green 20 件 → ゲート後 44 件）</li>
+<li>✅ <code>docs/adr/README.md</code>、ADR-0001/0002 の frontmatter</li>
+<li>✅ INDEX.md 生成、<code>--check</code> ok</li>
+<li>✅ PR #19 作成、critical-gate 4 回（1〜3 回目不通過 → 4 回目通過）</li>
+<li>追加（ゲートで発見）: ✅ <code>__pycache__</code> 除去、✅ 設計書・manual の旧命名除去、✅ 移行 Issue #79、✅ <code>.snapshots/</code> を管理外に</li>
+</ol></details>
+<details><summary>9-2. ゲートの履歴</summary>
+<table><tr><th>回</th><th>対象</th><th>Critical</th><th>判定</th></tr>
+<tr><td>1（4 視点）</td><td>1b4bb7c</td><td>topic 所属・有効判定・誤警告のテスト欠落、<code>__pycache__</code></td><td class="ng">不通過</td></tr>
+<tr><td>2（2 agent）</td><td>1245d49</td><td>services 側で skip が恒久化</td><td class="ng">不通過</td></tr>
+<tr><td>3（1 agent）</td><td>4fd387d</td><td>存在しないディレクトリを未移行と誤診</td><td class="ng">不通過</td></tr>
+<tr><td>4（1 agent）</td><td>cd049dd</td><td>なし（Warning 6 件は 352f17b で対応）</td><td class="ok">通過</td></tr>
+</table>
+<p class="m">人間判断で確定した項目: 1 本警告の廃止 / ADR 限定 / 同一ディレクトリ限定 / 移行 Issue + skip / skip の限定 / <code>aidd_root</code> の Binding 追加。</p></details>
+<details><summary>9-3. 実行結果（HEAD 352f17b）</summary>
+<pre>
+$ python3 -m unittest discover -s shared/scripts -p 'test_*.py'
+Ran 45 tests ... OK
+$ python3 shared/scripts/adr_index.py docs/adr --check
+ok: docs/adr/INDEX.md は最新
+$ python3 shared/scripts/adr_index.py {jrc}/remosys-context/contexts/system/adr --check
+warning: 語彙表 .../README.md も INDEX.md も無い。未移行として照合と索引生成を省略する
+skipped: 未移行ディレクトリ   (exit 0)
+</pre>
+<p class="m">352f17b の独立再確認は通過。Warning 2 件は後続コミットで解消（PR #19 コメント参照）。</p></details>
+</body></html>
