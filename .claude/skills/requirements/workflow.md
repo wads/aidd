@@ -41,7 +41,7 @@ Issue の受入れ条件を 1 件ずつ検査する。
 
 承認を求める前に、`critical-gate` の軽量版（仕様適合の視点: 曖昧・矛盾・漏れ）を通すことを推奨する（feature / refactoring。他タイプは任意 — `critical-gate/workflow.md` §0.5）。
 
-承認を求める際は、AI の見解（推奨する確定内容・対象外にした項目とその理由・残る懸念）を先に提示する（`common.md` の出力契約）。人間の承認を得たら、`output-format.md` の形式で GitHub Issueへコメントする（Issue本文は書き換えない。Intent Delta として追記する）。
+承認を求める際は、AI の見解（推奨する確定内容・対象外にした項目とその理由・残る懸念）を先に提示する（`common.md` の出力契約）。人間の承認を得たら、`output-format.md` の形式で GitHub Issueへコメントする（Issue本文は書き換えない。Intent Delta として追記する）。確認ループで得た人間の回答は、確定コメントの「確認記録」節に日付つきで同梱する（チャットに残したままにしない）。
 
 ## 注意事項
 
