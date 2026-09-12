@@ -40,15 +40,18 @@
 - `records_root`: 長期記録のルート。既定 `docs/`。コンテキストハブがある場合はそのパス（例 `../remosys-context/contexts`）
 - `issue_repo`: Issue を集約する GitHub リポジトリ。既定は対象 repo 自身（例 `owner/remosys-context`）
 - `service`: ハブ内でサービス別に分ける場合のサービス名（例 `remosys-frontend`）。単一 repo では省略可
+- `aidd_root`: aidd テンプレート（skill・rule・スクリプト）の配置先。自 repo から `{aidd_root}/shared/scripts/...` が解決できるパスを書く。既定は自 repo ルート（`.`。`shared/` を symlink で取り込んでいる場合もこれでよい）。別ディレクトリを直接参照する場合はそのパス（例 `../aidd`）。相対パスはリポジトリルート基準
 
 記録の配置（records_root 起点）:
 
-- ADR → `adr/`。`service` 指定時のサービス固有判断は `services/{service}/adr/`、複数サービス横断は `system/adr/`
-- 設計書 → `design/`（同上のルールで `services/{service}/`・`system/`）
-- runbook（実環境への適用手順・切り戻し） → `runbook/`（同上のルールで `services/{service}/`・`system/`）
-- すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する
+- ADR → `adr/` 1 か所に集約する。Binding に `service` があっても分割せず、ハブ構成では `system/adr/` にまとめる。サービス軸は frontmatter の `scope` で表す（ADR はどのサービスからも引けることが価値。判断の経緯は ADR-0008）
+- 設計書 → `design/`。`service` 指定時のサービス固有設計は `services/{service}/design/`、横断は `system/design/`（設計は 1 サービスの実装構造でローカル性が本物のため、ADR とは扱いを分ける）
+- runbook（実環境への適用手順・切り戻し） → `runbook/`（`service` 指定時は `services/{service}/runbook/`、横断は `system/runbook/`）
+- すべての長期記録に frontmatter（`type` / `scope` / `status` / `updated`）を付与する。ADR の `type` は `adr`（他の文書の値は利用側の規約に従う）
+- ADR にはさらに `topic`（判断領域タグ）と `summary`（要旨一行）を必須で付け、同 topic の既存 ADR との関係を `supersedes` / `amends`（双方向）か `considered`（読んだが無関係）で宣言する。status は `proposed` / `accepted` / `superseded` / `deprecated` に限る。旧 ADR に許す編集は frontmatter（status・逆リンク・updated）のみで本文には触れない
+- topic の語彙表は `{records_root}/domain-terms.md`（ハブは `system/domain-terms.md`。テンプレート `shared/templates/domain-terms-template.md`）、有効 ADR の索引は ADR ディレクトリの `INDEX.md`（生成物）。生成と照合は `{aidd_root}/shared/scripts/adr_index.py` をリポジトリルートで実行する。書き方・検査内容・未移行の扱いは `adr` skill と `review/acceptance.md` §7 に従う（判断の経緯は ADR-0008）
 
-宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo）として扱う。
+宣言が無いプロジェクトは standalone（`records_root: docs/`、`issue_repo`: 自 repo、`aidd_root`: 自 repo ルート）として扱う。
 
 承認ゲートは記録の置き場所・Issue トラッカーに依存しない（人間によるコンテンツ承認）。standalone でもハブでも同一に機能する。
 
@@ -63,6 +66,7 @@
 - `tdd-cycle`（P6 実装）
 - `review`（P7 検証・レビュー）
 - `critical-gate`（人間レビュー前の批判的チェック。P7 検証・レビュー 必須・P2/P5 軽量版）
+- `stacked-pr`（積み上げ式 PR のプロセス規則。機構は GitHub 公式の `gh stack` と `gh-stack` skill に委ねる）
 - `context-snapshot`（判断ポイントで人間に提示するレビュー・判断用文書の生成）
 - `retrospective`（P8 振り返り）
 - `multi-agent-discussion`

@@ -23,7 +23,7 @@ user-invocable: true
 
 ## 出力
 
-- ADR → `{records_root}/adr/{連番}-short-title.md`（service/system 分割は Binding に従う。テンプレート: `shared/templates/adr-template.md`）
+- ADR → `{records_root}/adr/{連番}-short-title.md`（ハブ構成では `{records_root}/system/adr/`。サービス別には分けない。テンプレート: `shared/templates/adr-template.md`）
 - 対象の GitHub Issue へ ADR のリンクをコメント
 
 ## 扱う Intent

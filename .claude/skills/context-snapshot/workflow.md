@@ -5,7 +5,7 @@
 Issue 番号を起点に以下を読む（GitHub Issue が索引。Issue のリンクとIssue 番号の grep で辿る）。
 
 - GitHub Issue本文（Product Intent）と Intent Delta コメント（P2 要求整理の確定条件、差し戻し記録、UI 合意）
-- 関連 ADR・設計書（Binding の records_root 配下の `adr/`・`design/` を Issue 番号で grep）
+- 関連 ADR・設計書（Binding の records_root 配下の `adr/`・`design/` を Issue 番号で grep。加えて、この Issue が扱う判断領域の有効 ADR を `adr/INDEX.md` の topic から引く。Issue 番号 grep だけでは「この Issue が従うべき過去の ADR」は見つからない）
 - PR の実装方針・AC⇄テスト対応表・検証記録・必須申告セクション
 
 ## 2. 意図の復元

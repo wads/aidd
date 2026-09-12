@@ -21,4 +21,5 @@ Issue の `type-*` ラベルから実施フェーズを決める。詳細な契�
 - 「判断駆動」= フェーズには入るが、成果物（ADR・設計書）は書くべき判断が生じたときだけ作る
 - chore の `context-snapshot` は任意。設定 1 行の変更に 1 枚のビューを起こすのは、人間から見た読む量に見合わない。ただし **本番環境へ変更を加える chore** では、規模ではなく影響範囲を基準に生成を検討する
 - draft PR は通常 P5 実装計画（implementation-plan）で作成するが、P5 実装計画を実施しない chore では `tdd-cycle` が P6 実装の開始時に作成する（`tdd-cycle/workflow.md` §4）
+- **stacked PR（ステップ = 1 PR）は P5 実装計画を実施するルート（feature / refactoring）で、各ステップが独立にレビュー・マージできる場合に使う**。P5 を通らないルート（chore / hotfix / spike）と bugfix の簡易計画は、ステップ数によらず従来どおり 1 PR。P5 で作るのは最下段の PR だけで、step2 以降は P6 実装で各ステップ完了時に作成する。P7 のゲート・人間チェック・マージは PR 単位で回り、Issue 全体の受入れ確認は最終 PR のマージ前に行う（手順は `stacked-pr`、責務配置は `docs/design/0002-stacked-pr-responsibilities.md`）
 - タイプが混在するIssue は分割を提案する。分割できなければ feature のルートに乗せる
