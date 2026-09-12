@@ -4,9 +4,9 @@
 
 | ID | 条件（一行要約） | 本文対応 | 検証手段 | 検証の実体 | 状態 |
 |---|---|---|---|---|---|
-| AC-1 | processingEnabled=False はログのみで正常終了する | 受入れ条件 1 | unit | `test_skips_when_processing_disabled` | ✅ |
-| AC-2 | 下部工 zip で下部工解析が実行される | 受入れ条件 1 | integration | `TestSubstructureEndToEnd` | ⏳ P6 |
-| QC-3 | dev 実データ E2E とフロント表示確認 | −（P2 確認ループ） | 手動 | P7 記録（Issue コメント）へのリンク | ⏳ P7 |
+| AC-1 | 機能が無効のときは何もせず正常終了する | 受入れ条件 1 | unit | `test_skips_when_disabled` | ✅ |
+| AC-2 | 対象データを投入すると変換が実行される | 受入れ条件 1 | integration | `TestConversionEndToEnd` | ⏳ P6 |
+| QC-3 | 検証環境の実データでの表示確認 | −（P2 確認ループ） | 手動 | P7 記録（Issue コメント）へのリンク | ⏳ P7 |
 
 記入規則:
 
