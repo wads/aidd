@@ -119,7 +119,7 @@ critical-gate（その PR の差分）を通過してから依頼する。PR コ
 
 ### P7 各節の分担
 
-`review/acceptance.md`「スタック時の適用単位」に従う（各 PR で受入れ検証・整合確認・契約チェック、最終 PR で snapshot・昇格判定・全 AC の横断確認）。
+`review/acceptance.md`「スタック時の適用単位」に従う（各 PR で受入れ検証・整合確認・契約チェック・snapshot の同じ URL の更新、最終 PR で snapshot の最終版・昇格判定・全 AC の横断確認）。
 
 ## 7. 計画変更（スタック構成の変更）
 
