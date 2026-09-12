@@ -1,3 +1,13 @@
+---
+type: adr
+scope: all
+status: superseded
+updated: 2026-09-04
+topic: [records, tooling]
+summary: Claude Code と Codex の併用のため skill を .agents/skills/ に置き command wrapper で参照する（出典 playbook の経緯）
+superseded_by: [0002]
+---
+
 # [ADR-0001] Claude Code と Codex 向けに skill 配置を `.agents/skills/` へ再編する
 
 > **注（aidd テンプレート）**: この ADR は出典 playbook の歴史的経緯として残している。本テンプレートでは skill 配置を `.claude/skills/`（Claude Code ネイティブ）に集約しており、`.agents/skills/` 配置という結論は [ADR-0002](0002-adapt-as-aidd-template.md) が置き換える。

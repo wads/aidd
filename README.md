@@ -20,7 +20,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 ![開発フェーズ・ゲート・コンテキストの全体像](docs/assets/dev-phase-overview.svg)
 
 - 縦の流れがフェーズ、ピンクの楕円が承認ゲート。横の列は成果物（コンテキスト）の行き先を表す
-- 破線の成果物・ゲートは条件付き: ADR・設計書は書くべき判断が生じたときだけ作り（判断駆動）、プロトタイピングは UI 変更時のみ実施する
+- 破線の成果物・ゲートは条件付き: ADR・設計書は書くべき判断が生じたときだけ作り（判断駆動。ただし設計書は構造基準＝テスト以外のコードの新設・責務分割や依存方向の変更に当たれば必ず作る）、プロトタイピングは UI 変更時のみ実施する
 - コンテキストは 2 層: **短期**（Issue コメント・PR、マージ後は使い捨て）と **長期**（プロダクト repo の ADR・設計書・テスト、イミュータブル）。マージ前に「短期コンテキストの昇格」で長期価値あるものだけを残す
 - タイプ別にどのフェーズを通るかは [人間向けマニュアル](docs/manual.md#タイプ別ルート) を参照
 
@@ -37,6 +37,7 @@ AI 駆動開発を **安全に・継続的に改善しながら回す** ため�
 records_root: docs/                 # 既定。コンテキストハブ利用時は例: ../remosys-context/contexts
 issue_repo:   <owner>/<repo>        # 既定は自 repo
 service:      <service-name>        # ハブでサービス別に分ける場合のみ
+aidd_root:    /path/to/aidd       # 上の @ 参照と同じ場所。相対パスはリポジトリルート基準。symlink で取り込む場合は上の @ も ./shared/... にして aidd_root: .（既定）
 
 ## Project Configuration
 - Test command: `npm test`
@@ -68,6 +69,8 @@ Codex を併用する場合は `AGENTS.md` から `shared/rules/common.md` と `
 | `.claude/skills/` | skill 本文の source of truth（Claude Code ネイティブ skill） |
 | `shared/rules/` | 共通ルール（Binding 規約を含む） |
 | `shared/templates/` | 汎用テンプレート |
+| `shared/scripts/` | 補助スクリプト（ADR 索引の生成・照合 `adr_index.py` とそのテスト） |
+| `docs/domain-terms.md` | 用語と判断領域（ADR の topic 語彙表）。利用側は `{records_root}/domain-terms.md` に置く |
 | `docs/` | ADR、設計、チュートリアル、マニュアル |
 
 ## Skills
@@ -84,12 +87,12 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 | `ui-prototyping` | P2.5 プロトタイピング | UI の試作と PdM とのすり合わせ、実装ハンドオフ文書の生成（UI 変更時のみ） |
 | `adr` | P3 技術判断 | 技術判断を ADR としてイミュータブルに記録する（判断駆動） |
 | `multi-agent-discussion` | P3 技術判断 補助 | 複数の独立視点で調査し、アンカリングを避けて選択肢を整理する |
-| `design-docs` | P4 設計 | 責務分割・守るべき振る舞いを設計書に残す（判断駆動） |
+| `design-docs` | P4 設計 | 構造図・責務分割・命名とパターン・技術的負債の方針・守るべき振る舞いを設計書に残す（構造基準に当たれば必須、ほかは判断駆動） |
 | `implementation-plan` | P5 実装計画 | 実装順序と TDD / DIRECT 区分を計画し draft PR に残す |
 | `tdd-cycle` | P6 実装 | TDD サイクルで実装し、受入れ条件とテストを PR の対応表で結ぶ（P6 実装の完了時に実績と突き合わせ） |
 | `critical-gate` | P7 検証・レビュー 必須（P2/P5 軽量版） | 人間レビュー前の批判的チェックゲート。独立視点の agent が否定前提でレビューし、指摘の戻り先を判定して通過まで差し戻す |
 | `review` | P7 検証・レビュー | ブランチレビュー、受入れ検証、短期コンテキストの昇格判定、発見のトリアージ |
-| `context-snapshot` | P7 検証・レビュー | Issue の意図と検証状態を HTML スナップショットに生成する（ワークスペースに使い捨て保存） |
+| `context-snapshot` | 判断ポイント全般 | Issue の意図・設計・検証状態を HTML スナップショットに生成し、Artifact で公開して判断ポイントごとに同じ URL を更新する |
 | `retrospective` | P8 振り返り | AAR（意図と結果の差分）を人間との対話で作り、合意した変更を playbook 改善へつなげる |
 
 ### 開発プロセス外の skill
@@ -110,5 +113,6 @@ Issue 作成から振り返りまでの開発プロセスを構成する skill�
 
 - skill は `.claude/skills/<name>/SKILL.md` に追加する（source of truth、`user-invocable: true`）
 - 共通ルール・Binding 規約は `shared/rules/` に追加する
+- スクリプトのテスト: リポジトリルートで `python3 -m unittest discover -s shared/scripts -p 'test_*.py'`。ADR を変えたら `python3 shared/scripts/adr_index.py docs/adr --check`
 - 記録の置き場所はプロジェクトの `CLAUDE.md` の AIDD Binding で宣言し、全フェーズで一貫させる（フェーズごとに規約を混在させない）
 - playbook 自体の改善は、各プロジェクトの振り返り（P8 振り返り）からこのリポジトリへの PR として還流する

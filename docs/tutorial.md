@@ -55,7 +55,7 @@ Claude Code を起動した後の具体的な進め方を、ステップバイ�
 
 ## Step 4: 検証・レビューとマージ（P7 検証・レビュー）
 
-まず `critical-gate` skill が独立視点の批判的レビューを行い、Critical 指摘を戻り先フェーズへ差し戻して解消します。通過後、`review` skill が self-review と AC ごとの受入れ検証を行い、`context-snapshot` がIssue の意図と検証状態を 1 枚の HTML にまとめてワークスペースに生成します（要点は Issue コメントに残ります）。
+まず `critical-gate` skill が独立視点の批判的レビューを行い、Critical 指摘を戻り先フェーズへ差し戻して解消します。通過後、`review` skill が self-review と AC ごとの受入れ検証を行い、`context-snapshot` が Issue の意図・設計・検証状態を 1 枚の HTML にまとめ、Artifact として公開します（判断ポイントごとに同じ URL が更新され、途中版も残ります。要点は Issue コメントに残ります）。
 
 **あなたがやること:**
 - ゲート通過後のスナップショットと PR を見て受入れを判断する
