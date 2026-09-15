@@ -2,10 +2,11 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-09
+updated: 2026-09-15
 topic: [workflow]
 summary: stacked PR の機構を GitHub ネイティブの gh stack に委ね、操作手順は公式 gh-stack skill を単一の正とする
 supersedes: [0003, 0005]
+amended_by: [0010]
 considered: [0006]
 ---
 

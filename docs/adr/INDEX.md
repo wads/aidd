@@ -17,8 +17,9 @@
 ## workflow · 開発フローと PR 運用の決め方（stacked PR、マージ順序、再ゲートの規則。記録の置き場・書き方は `records`）
 
 - [ADR-0006 積み替え後は判定を行わず常に再ゲートする](0006-always-regate-after-restack.md): 積み替え・base 付け替え後は差分の変化を判定せず、人間チェック直前に常に再ゲートする · accepted · supersedes 0004
-- [ADR-0007 stacked PR の機構を GitHub ネイティブ機能（gh stack）に委ねる](0007-adopt-github-native-stacked-prs.md): stacked PR の機構を GitHub ネイティブの gh stack に委ね、操作手順は公式 gh-stack skill を単一の正とする · accepted · supersedes 0003, 0005
+- [ADR-0007 stacked PR の機構を GitHub ネイティブ機能（gh stack）に委ねる](0007-adopt-github-native-stacked-prs.md): stacked PR の機構を GitHub ネイティブの gh stack に委ね、操作手順は公式 gh-stack skill を単一の正とする · accepted · supersedes 0003, 0005 · amended_by 0010
 - [ADR-0009 構造基準による設計協議の必須化と snapshot の常時公開](0009-design-phase-and-snapshot-publishing.md): 構造基準（コード新設・責務分割や依存方向の変更）で P4 設計を必須化し設計書に構造図・命名・負債方針を持たせる。snapshot は Artifact で 1 URL を判断ポイントごとに更新し、ゲートに設計書欠落と負債増大のレンズを足す · accepted
+- [ADR-0010 マージ順序の防御を base の判定に置き、着地を二点で確認する](0010-base-branch-check-and-landing-verification.md): マージ順序の防御条件をスタックという分類から PR の base の値へ移し、マージ後の着地確認をマージ直後と次の着手の二点で必須にする · accepted · amends 0007
 
 ## 失効
 
