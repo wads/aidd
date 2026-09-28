@@ -79,7 +79,9 @@ class MutateTest(unittest.TestCase):
         before = (self.repo / "a.ts").read_bytes()
         self.run_one("// MARK", "// gone")
         self.assertEqual((self.repo / "a.ts").read_bytes(), before)
-        self.assertEqual(mutate.git_porcelain(self.repo, self.json_out), "")
+        # 結果ファイルも残さない（除外なしの git status が空）
+        self.assertFalse(self.json_out.exists())
+        self.assertEqual(mutate.git_porcelain(self.repo), "")
 
     def test_collection_failure_is_invalid_not_detected(self):
         os.environ["FAKE_MODE"] = "crash"

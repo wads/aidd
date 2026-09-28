@@ -124,6 +124,9 @@ def run_one(
         parsed = parse_vitest_json(json_out)
     finally:
         target.write_bytes(original)
+        # 結果ファイルを残すと git status に出て、次の測定や人の目を惑わせる
+        if json_out.exists():
+            json_out.unlink()
 
     after_hash = sha256(target.read_bytes())
     if after_hash != before_hash:
