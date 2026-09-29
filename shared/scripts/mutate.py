@@ -14,6 +14,7 @@
 - 復元は注入前のバイト列を書き戻し、ハッシュ一致を検査する（git を使わない）
 - 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・skipped・件数の減少は「無効」
 - 注入前のバイト列は disk（一時ディレクトリ）にも退避し、殺されて残った変異は次の実行の冒頭で復元する
+- 「無効」のときは結果の JSON とテストの出力をリポジトリの外へ退避し、備考にパスを書く（出所を後から追える）
 
 使い方（1 件）:
   mutate.py --repo . --file src/a.ts --old 'x ?? y' --new 'x || y' \
@@ -92,6 +93,18 @@ def backup_path(repo: Path, rel: str) -> Path:
     return d / f"{key}.bak"
 
 
+def keep_evidence(label: str, raw_json: bytes | None, proc) -> Path:
+    """「無効」の出所を後から追えるよう、消す前の結果と出力をリポジトリの外へ退避する"""
+    d = Path(tempfile.mkdtemp(prefix="mutate-invalid-"))
+    safe = "".join(c if c.isalnum() else "_" for c in label)[:40] or "M"
+    if raw_json is not None:
+        (d / f"{safe}.json").write_bytes(raw_json)
+    if proc is not None:
+        (d / f"{safe}.stdout.txt").write_text(proc.stdout or "", encoding="utf-8")
+        (d / f"{safe}.stderr.txt").write_text(proc.stderr or "", encoding="utf-8")
+    return d / f"{safe}.json" if raw_json is not None else d
+
+
 def recover_interrupted(repo: Path, rel: str) -> bool:
     """前回の実行が殺されて残った変異を、退避コピーから戻す。戻したら True"""
     bak = backup_path(repo, rel)
@@ -141,13 +154,17 @@ def run_one(
 
     before_hash = sha256(original)
     bak = backup_path(repo, rel)
+    raw_json: bytes | None = None
+    proc = None
     try:
         bak.write_bytes(original)
         target.write_bytes(text.replace(old, new, 1).encode("utf-8"))
         if json_out.exists():
             json_out.unlink()
-        subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
+        proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
         parsed = parse_vitest_json(json_out)
+        if json_out.exists():
+            raw_json = json_out.read_bytes()
     finally:
         target.write_bytes(original)
         if bak.exists():
@@ -164,15 +181,18 @@ def run_one(
     if dirty:
         raise RuntimeError(f"復元後に作業ツリーが clean でない:\n{dirty}")
 
+    def invalid(failed: int, total: int, reason: str) -> Result:
+        return Result(label, INVALID, failed, total, f"{reason}。結果: {keep_evidence(label, raw_json, proc)}")
+
     if parsed is None:
-        return Result(label, INVALID, 0, 0, "テスト結果を読めない（収集失敗・構文エラー・出力ファイル無し）")
+        return invalid(0, 0, "テスト結果を読めない（収集失敗・構文エラー・出力ファイル無し）")
     failed, total, skipped = parsed
     if total == 0:
-        return Result(label, INVALID, failed, total, "テストが 1 件も実行されていない")
+        return invalid(failed, total, "テストが 1 件も実行されていない")
     if skipped > 0:
-        return Result(label, INVALID, failed, total, f"skipped が {skipped} 件（実行不能を含む）")
+        return invalid(failed, total, f"skipped が {skipped} 件（実行不能を含む）")
     if baseline_total is not None and total < baseline_total:
-        return Result(label, INVALID, failed, total, f"件数が基準 {baseline_total} を下回る")
+        return invalid(failed, total, f"件数が基準 {baseline_total} を下回る")
     if failed > 0:
         return Result(label, DETECTED, failed, total, "")
     return Result(label, SURVIVED, failed, total, "全件 green。等価変異か、検出力の欠落")

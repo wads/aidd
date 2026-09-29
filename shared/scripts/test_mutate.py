@@ -99,6 +99,19 @@ class MutateTest(unittest.TestCase):
             del os.environ["FAKE_MODE"]
         self.assertEqual(r.verdict, mutate.INVALID)
 
+    def test_invalid_keeps_the_result_outside_the_repo(self):
+        # 「無効」の出所を後から追えるよう、消す前の結果を退避して備考にパスを書く
+        os.environ["FAKE_MODE"] = "skipped"
+        try:
+            r = self.run_one("// MARK", "// gone")
+        finally:
+            del os.environ["FAKE_MODE"]
+        kept = Path(r.note.split("結果: ")[1].strip())
+        self.assertTrue(kept.exists())
+        self.assertFalse(str(kept).startswith(str(self.repo)))
+        self.assertEqual(json.loads(kept.read_text())["numPendingTests"], 3)
+        self.assertFalse(self.json_out.exists())
+
     def test_total_below_baseline_is_invalid(self):
         r = self.run_one("// MARK", "// gone", baseline=10)
         self.assertEqual(r.verdict, mutate.INVALID)
