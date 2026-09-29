@@ -22,7 +22,16 @@
             --json-out /tmp/vitest.json [--baseline-total 42] [--label M07]
 
 複数件は --spec で JSON 配列（各要素は file / old / new / label）。
-出力は PR にそのまま貼れる Markdown の表の行。終了コードは 0（全件が検出または等価として扱う判定に依らず、実行が完走したこと）。
+出力は PR にそのまま貼れる Markdown の表の行。
+
+終了コード:
+  0  完走した（判定の内訳に依らない）
+  3  作業ツリーに未コミットの差分がある（変異しない）
+  4  復元後の内容が注入前と一致しない、または作業ツリーが clean でない（以後の測定を止めた）
+  5  基準の実行（変異なし）が green でない（変異しない）
+  6  前回の中断で残った退避コピーがあるが、今の内容が注入した変異と一致しない（戻さない）
+
+対応するテストランナーは vitest の JSON 出力（--reporter=json --outputFile=...）だけ。
 """
 from __future__ import annotations
 
@@ -51,7 +60,9 @@ class Result:
     note: str
 
     def row(self) -> str:
-        return f"| {self.label} | {self.verdict} | {self.failed} / {self.total} | {self.note} |"
+        # ラベルや備考に | が入ると Markdown の表の列がずれる
+        cell = lambda v: str(v).replace("|", "\\|")
+        return f"| {cell(self.label)} | {self.verdict} | {self.failed} / {self.total} | {cell(self.note)} |"
 
 
 class DirtyTree(Exception):

@@ -193,6 +193,30 @@ class MutateTest(unittest.TestCase):
 
         self.assertEqual(seen.read_text(), "yes")
 
+    def test_label_with_a_pipe_does_not_break_the_table(self):
+        proc = self.cli(spec=[{"file": "a.ts", "old": "// MARK", "new": "// gone", "label": "a ?? b | c"}])
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("| a ?? b \\| c | 検出 |", proc.stdout)
+
+    def test_repo_given_as_a_subdirectory_still_ignores_the_result_file(self):
+        (self.repo / "sub").mkdir()
+        (self.repo / "sub" / "b.ts").write_text("const w = 1; // MARK\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "sub"], check=True)
+        out = self.repo / "sub" / "out.json"
+        path = Path(tempfile.mkdtemp()) / "spec.json"
+        path.write_text(json.dumps([{"file": "b.ts", "old": "// MARK", "new": "// gone", "label": "S"}]), encoding="utf-8")
+
+        proc = subprocess.run(
+            [sys.executable, mutate.__file__, "--repo", str(self.repo / "sub"),
+             "--test", f"{sys.executable} ../runner.py b.ts {out}", "--json-out", str(out), "--spec", str(path)],
+            capture_output=True, text=True,
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("| S | 検出 |", proc.stdout)
+
     def test_cli_prints_markdown_rows(self):
         # spec はリポジトリの外に置く（中に置くとハーネスが「未コミットの差分」として正しく拒否する）
         spec = Path(tempfile.mkdtemp()) / "spec.json"
