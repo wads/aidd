@@ -104,6 +104,38 @@ class MutateTest(unittest.TestCase):
         self.assertEqual(r.verdict, mutate.INVALID)
         self.assertIn("基準 10", r.note)
 
+    def test_recovers_mutation_left_by_interrupted_run(self):
+        # 前回のプロセスが殺されて変異が残った状態を再現する: 退避コピーがあり、対象は書き換わっている
+        target = self.repo / "a.ts"
+        original = target.read_bytes()
+        bak = mutate.backup_path(self.repo, "a.ts")
+        bak.write_bytes(original)
+        target.write_bytes(original.replace(b"// MARK", b"// gone"))
+
+        r = self.run_one("// MARK", "// gone")
+
+        self.assertEqual(r.verdict, mutate.DETECTED)
+        self.assertEqual(target.read_bytes(), original)
+        self.assertFalse(bak.exists())
+
+    def test_backup_is_on_disk_while_mutated(self):
+        # 実行中に殺されても復元できるよう、退避は disk に置く
+        seen = Path(tempfile.mkdtemp()) / "seen.txt"
+        runner = self.repo / "runner.py"
+        runner.write_text(
+            FAKE_RUNNER + textwrap.dedent(f"""\
+                import pathlib
+                p = pathlib.Path({str(mutate.backup_path(self.repo, "a.ts"))!r})
+                open({str(seen)!r}, "w").write("yes" if p.exists() else "no")
+                """),
+            encoding="utf-8",
+        )
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qam", "runner"], check=True)
+
+        self.run_one("// MARK", "// gone")
+
+        self.assertEqual(seen.read_text(), "yes")
+
     def test_cli_prints_markdown_rows(self):
         # spec はリポジトリの外に置く（中に置くとハーネスが「未コミットの差分」として正しく拒否する）
         spec = Path(tempfile.mkdtemp()) / "spec.json"

@@ -6,12 +6,14 @@
 - 置換対象が複数あり、別の箇所を書き換えて「生存」と誤報告した
 - 構文エラーで実行不能になったのを「検出 0 件」と読み違えた
 - 復元に失敗したまま次の変異を測った
+- 実行中にプロセスが殺され、変異が作業ツリーに残った（退避がメモリにしか無かった）
 
 保証すること:
 - 作業ツリーが clean でなければ中止する（コミットできない状態では変異しない）
 - 置換対象の出現数がちょうど 1 でなければ、その変異は「無効」
 - 復元は注入前のバイト列を書き戻し、ハッシュ一致を検査する（git を使わない）
 - 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・skipped・件数の減少は「無効」
+- 注入前のバイト列は disk（一時ディレクトリ）にも退避し、殺されて残った変異は次の実行の冒頭で復元する
 
 使い方（1 件）:
   mutate.py --repo . --file src/a.ts --old 'x ?? y' --new 'x || y' \
@@ -27,8 +29,10 @@ import argparse
 import hashlib
 import json
 import os
+import signal
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -80,6 +84,24 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def backup_path(repo: Path, rel: str) -> Path:
+    """注入前のバイト列の退避先。リポジトリの外に置く（中に置くと clean 検査に引っかかる）"""
+    key = sha256(f"{repo.resolve()}::{rel}".encode("utf-8"))[:16]
+    d = Path(tempfile.gettempdir()) / "mutate-backup"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / f"{key}.bak"
+
+
+def recover_interrupted(repo: Path, rel: str) -> bool:
+    """前回の実行が殺されて残った変異を、退避コピーから戻す。戻したら True"""
+    bak = backup_path(repo, rel)
+    if not bak.exists():
+        return False
+    (repo / rel).write_bytes(bak.read_bytes())
+    bak.unlink()
+    return True
+
+
 def parse_vitest_json(path: Path) -> tuple[int, int, int] | None:
     """(failed, total, skipped) を返す。読めなければ None。"""
     try:
@@ -105,6 +127,8 @@ def run_one(
     baseline_total: int | None,
     label: str,
 ) -> Result:
+    if recover_interrupted(repo, rel):
+        print(f"前回の中断で残っていた変異を復元した: {rel}", file=sys.stderr)
     require_clean(repo, json_out)
     target = repo / rel
     original = target.read_bytes()
@@ -116,7 +140,9 @@ def run_one(
         return Result(label, INVALID, 0, 0, "old と new が同一")
 
     before_hash = sha256(original)
+    bak = backup_path(repo, rel)
     try:
+        bak.write_bytes(original)
         target.write_bytes(text.replace(old, new, 1).encode("utf-8"))
         if json_out.exists():
             json_out.unlink()
@@ -124,6 +150,8 @@ def run_one(
         parsed = parse_vitest_json(json_out)
     finally:
         target.write_bytes(original)
+        if bak.exists():
+            bak.unlink()
         # 結果ファイルを残すと git status に出て、次の測定や人の目を惑わせる
         if json_out.exists():
             json_out.unlink()
@@ -162,6 +190,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--label", default="M")
     ap.add_argument("--spec", help="JSON 配列のファイル。各要素: file / old / new / label")
     args = ap.parse_args(argv)
+
+    # SIGTERM でも finally の復元を通す（SIGKILL は防げないので disk の退避で次回に戻す）
+    def _interrupt(signum, frame):  # noqa: ARG001
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, _interrupt)
 
     repo = Path(args.repo).resolve()
     json_out = Path(args.json_out)
