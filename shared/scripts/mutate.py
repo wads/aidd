@@ -58,6 +58,10 @@ class DirtyTree(Exception):
     pass
 
 
+class UnsafeRecovery(Exception):
+    """中断で残った退避コピーがあるが、今の内容が変異後と一致しない（人が編集した可能性がある）"""
+
+
 def git_porcelain(repo: Path, ignore: Path | None = None) -> str:
     """未コミットの差分。テストランナーが書く結果ファイル（ignore）だけは差分と数えない。"""
     out = subprocess.run(
@@ -105,13 +109,36 @@ def keep_evidence(label: str, raw_json: bytes | None, proc) -> Path:
     return d / f"{safe}.json" if raw_json is not None else d
 
 
+def mutated_marker_path(repo: Path, rel: str) -> Path:
+    """注入した変異後の内容のハッシュ。中断後の復元で、人の編集を上書きしないために使う"""
+    return backup_path(repo, rel).with_suffix(".mutated")
+
+
 def recover_interrupted(repo: Path, rel: str) -> bool:
-    """前回の実行が殺されて残った変異を、退避コピーから戻す。戻したら True"""
+    """前回の実行が殺されて残った変異を、退避コピーから戻す。戻したら True。
+
+    今の内容が注入した変異と一致するときだけ戻す。一致しなければ、中断のあとに人が
+    編集した可能性があるので戻さずに止める（その編集を古い内容で上書きしない）。
+    """
     bak = backup_path(repo, rel)
+    marker = mutated_marker_path(repo, rel)
     if not bak.exists():
         return False
-    (repo / rel).write_bytes(bak.read_bytes())
+    current = sha256((repo / rel).read_bytes())
+    original = bak.read_bytes()
+    if current == sha256(original):
+        # 復元は済んでいて、退避の片づけの前に止まっていた
+        pass
+    elif marker.exists() and current == marker.read_text(encoding="utf-8").strip():
+        (repo / rel).write_bytes(original)
+    else:
+        raise UnsafeRecovery(
+            f"{rel}: 前回の中断で残った退避コピーがあるが、今の内容は注入した変異と一致しない。"
+            f"中断のあとに編集された可能性があるので戻さない。退避コピー: {bak}"
+        )
     bak.unlink()
+    if marker.exists():
+        marker.unlink()
     return True
 
 
@@ -154,11 +181,14 @@ def run_one(
 
     before_hash = sha256(original)
     bak = backup_path(repo, rel)
+    marker = mutated_marker_path(repo, rel)
+    mutated = text.replace(old, new, 1).encode("utf-8")
     raw_json: bytes | None = None
     proc = None
     try:
         bak.write_bytes(original)
-        target.write_bytes(text.replace(old, new, 1).encode("utf-8"))
+        marker.write_text(sha256(mutated), encoding="utf-8")
+        target.write_bytes(mutated)
         if json_out.exists():
             json_out.unlink()
         proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
@@ -169,6 +199,8 @@ def run_one(
         target.write_bytes(original)
         if bak.exists():
             bak.unlink()
+        if marker.exists():
+            marker.unlink()
         # 結果ファイルを残すと git status に出て、次の測定や人の目を惑わせる
         if json_out.exists():
             json_out.unlink()
@@ -193,6 +225,8 @@ def run_one(
         return invalid(failed, total, f"skipped が {skipped} 件（実行不能を含む）")
     if baseline_total is not None and total < baseline_total:
         return invalid(failed, total, f"件数が基準 {baseline_total} を下回る")
+    if failed == 0 and proc is not None and proc.returncode != 0:
+        return invalid(failed, total, f"失敗 0 件だが終了コードが {proc.returncode}")
     if failed > 0:
         return Result(label, DETECTED, failed, total, "")
     return Result(label, SURVIVED, failed, total, "全件 green。等価変異か、検出力の欠落")
@@ -229,18 +263,40 @@ def main(argv: list[str] | None = None) -> int:
             ap.error("--file / --old / --new か --spec を指定する")
         specs = [{"file": args.file, "old": args.old, "new": args.new, "label": args.label}]
 
+    # 中断で残った変異は clean 検査より先に戻す（先に検査すると、残った変異を差分と見て止まる）
+    try:
+        for rel in dict.fromkeys(s["file"] for s in specs):
+            if recover_interrupted(repo, rel):
+                print(f"前回の中断で残っていた変異を復元した: {rel}", file=sys.stderr)
+    except UnsafeRecovery as e:
+        print(f"中止: {e}", file=sys.stderr)
+        return 6
+
     try:
         require_clean(repo, json_out)
     except DirtyTree as e:
         print(str(e), file=sys.stderr)
         return 3
 
+    # 変異の前に、何も変えない状態で green かを確かめる。落ちているテストがあると、
+    # どの変異も「検出」と判定されてしまう
+    if json_out.exists():
+        json_out.unlink()
+    base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True)
+    parsed = parse_vitest_json(json_out)
+    if json_out.exists():
+        json_out.unlink()
+    if parsed is None or parsed[0] > 0 or parsed[2] > 0 or parsed[1] == 0 or base.returncode != 0:
+        print(f"中止: 基準の実行（変異なし）が green でない: 結果={parsed} 終了コード={base.returncode}", file=sys.stderr)
+        return 5
+    baseline_total = args.baseline_total if args.baseline_total is not None else parsed[1]
+
     print("| 変異 | 判定 | 失敗 / 全件 | 備考 |")
     print("|---|---|---|---|")
     for i, s in enumerate(specs, 1):
         label = s.get("label") or f"M{i:02d}"
         try:
-            r = run_one(repo, s["file"], s["old"], s["new"], args.test, json_out, args.baseline_total, label)
+            r = run_one(repo, s["file"], s["old"], s["new"], args.test, json_out, baseline_total, label)
         except DirtyTree as e:
             print(str(e), file=sys.stderr)
             return 3

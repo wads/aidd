@@ -29,6 +29,9 @@ FAKE_RUNNER = textwrap.dedent("""\
         data = {"numTotalTests": 0, "numFailedTests": 0, "numFailedTestSuites": 1}
     elif mode == "skipped":
         data = {"numTotalTests": 3, "numFailedTests": 0, "numPendingTests": 3}
+    elif mode == "exit1":
+        open(out, "w").write(json.dumps({"numTotalTests": 3, "numFailedTests": 0}))
+        sys.exit(1)
     else:
         ok = "MARK" in src
         data = {"numTotalTests": 3, "numFailedTests": 0 if ok else 1}
@@ -117,19 +120,60 @@ class MutateTest(unittest.TestCase):
         self.assertEqual(r.verdict, mutate.INVALID)
         self.assertIn("基準 10", r.note)
 
-    def test_recovers_mutation_left_by_interrupted_run(self):
-        # 前回のプロセスが殺されて変異が残った状態を再現する: 退避コピーがあり、対象は書き換わっている
-        target = self.repo / "a.ts"
-        original = target.read_bytes()
-        bak = mutate.backup_path(self.repo, "a.ts")
-        bak.write_bytes(original)
-        target.write_bytes(original.replace(b"// MARK", b"// gone"))
+    def cli(self, *extra, test_cmd=None, spec=None):
+        spec = spec or [{"file": "a.ts", "old": "// MARK", "new": "// gone", "label": "M-A"}]
+        path = Path(tempfile.mkdtemp()) / "spec.json"
+        path.write_text(json.dumps(spec), encoding="utf-8")
+        return subprocess.run(
+            [sys.executable, mutate.__file__, "--repo", str(self.repo), "--test", test_cmd or self.test_cmd,
+             "--json-out", str(self.json_out), "--spec", str(path), *extra],
+            capture_output=True, text=True,
+        )
 
-        r = self.run_one("// MARK", "// gone")
+    def interrupt(self):
+        # 変異を入れたテストの実行中にハーネス自身を SIGKILL する（finally も走らない本物の中断）。
+        # 変異の前の基準の実行では止めない
+        self.cli(test_cmd=f'grep -q "// gone" a.ts && kill -9 $PPID; {self.test_cmd}')
+        self.assertIn("// gone", (self.repo / "a.ts").read_text())
 
-        self.assertEqual(r.verdict, mutate.DETECTED)
-        self.assertEqual(target.read_bytes(), original)
-        self.assertFalse(bak.exists())
+    def test_cli_recovers_a_mutation_left_by_a_killed_run(self):
+        original = (self.repo / "a.ts").read_bytes()
+        self.interrupt()
+
+        proc = self.cli()
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("| M-A | 検出 | 1 / 3 |", proc.stdout)
+        self.assertEqual((self.repo / "a.ts").read_bytes(), original)
+
+    def test_cli_does_not_overwrite_edits_made_after_a_killed_run(self):
+        self.interrupt()
+        edited = "const v = 2; // MARK edited by hand\n"
+        (self.repo / "a.ts").write_text(edited, encoding="utf-8")
+
+        proc = self.cli()
+
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertEqual((self.repo / "a.ts").read_text(encoding="utf-8"), edited)
+        self.assertIn("戻さない", proc.stderr)
+
+    def test_cli_refuses_when_the_baseline_is_not_green(self):
+        (self.repo / "a.ts").write_text("const v = 1; // no marker\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qam", "red"], check=True)
+
+        proc = self.cli(spec=[{"file": "a.ts", "old": "const v = 1", "new": "const v = 2", "label": "M-A"}])
+
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertNotIn("| M-A |", proc.stdout)
+        self.assertIn("基準", proc.stderr)
+
+    def test_nonzero_exit_without_failures_is_invalid(self):
+        os.environ["FAKE_MODE"] = "exit1"
+        try:
+            r = self.run_one("// MARK", "// gone")
+        finally:
+            del os.environ["FAKE_MODE"]
+        self.assertEqual(r.verdict, mutate.INVALID)
 
     def test_backup_is_on_disk_while_mutated(self):
         # 実行中に殺されても復元できるよう、退避は disk に置く
