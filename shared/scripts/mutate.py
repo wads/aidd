@@ -31,7 +31,8 @@
   5  基準の実行（変異なし）が green でない（変異しない）
   6  前回の中断で残った退避コピーがあるが、今の内容が注入した変異と一致しない（戻さない）
 
-対応するテストランナーは vitest の JSON 出力（--reporter=json --outputFile=...）だけ。
+読める結果: vitest の JSON（--reporter=json --outputFile=...）と JUnit XML
+（vitest --reporter=junit --outputFile=...、pytest --junitxml=...）。形式は中身で見分ける。
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -153,11 +155,39 @@ def recover_interrupted(repo: Path, rel: str) -> bool:
     return True
 
 
-def parse_vitest_json(path: Path) -> tuple[int, int, int] | None:
-    """(failed, total, skipped) を返す。読めなければ None。"""
+def parse_results(path: Path) -> tuple[int, int, int] | None:
+    """テスト結果から (failed, total, skipped) を返す。読めなければ None。
+
+    vitest の JSON（--reporter=json）と JUnit XML（vitest --reporter=junit・pytest --junitxml）を読む。
+    """
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if text.lstrip().startswith("<"):
+        return parse_junit_xml(text)
+    return parse_vitest_json(text)
+
+
+def parse_junit_xml(text: str) -> tuple[int, int, int] | None:
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        return None
+    cases = list(root.iter("testcase"))
+    failed = sum(1 for c in cases if c.find("failure") is not None or c.find("error") is not None)
+    skipped = sum(1 for c in cases if c.find("skipped") is not None)
+    # 収集段階で落ちたスイートは testcase を持たず、testsuite の errors 属性にだけ出ることがある
+    suite_errors = sum(int(s.get("errors", "0") or 0) for s in root.iter("testsuite"))
+    if not cases and suite_errors > 0:
+        return None
+    return failed, len(cases), skipped
+
+
+def parse_vitest_json(text: str) -> tuple[int, int, int] | None:
+    try:
+        data = json.loads(text)
+    except ValueError:
         return None
     total = int(data.get("numTotalTests", 0))
     failed = int(data.get("numFailedTests", 0))
@@ -203,7 +233,7 @@ def run_one(
         if json_out.exists():
             json_out.unlink()
         proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
-        parsed = parse_vitest_json(json_out)
+        parsed = parse_results(json_out)
         if json_out.exists():
             raw_json = json_out.read_bytes()
     finally:
@@ -246,8 +276,8 @@ def run_one(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", required=True)
-    ap.add_argument("--test", required=True, help="テスト実行コマンド（vitest の --reporter=json --outputFile を含める）")
-    ap.add_argument("--json-out", required=True, help="--test が書く vitest の JSON のパス")
+    ap.add_argument("--test", required=True, help="テスト実行コマンド（結果を --json-out のパスへ書かせる。vitest の JSON か JUnit XML）")
+    ap.add_argument("--json-out", required=True, help="--test が書く結果ファイルのパス（vitest の JSON か JUnit XML）")
     ap.add_argument("--baseline-total", type=int, default=None)
     ap.add_argument("--file")
     ap.add_argument("--old")
@@ -294,7 +324,7 @@ def main(argv: list[str] | None = None) -> int:
     if json_out.exists():
         json_out.unlink()
     base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True)
-    parsed = parse_vitest_json(json_out)
+    parsed = parse_results(json_out)
     if json_out.exists():
         json_out.unlink()
     if parsed is None or parsed[0] > 0 or parsed[2] > 0 or parsed[1] == 0 or base.returncode != 0:

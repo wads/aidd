@@ -29,6 +29,17 @@ FAKE_RUNNER = textwrap.dedent("""\
         data = {"numTotalTests": 0, "numFailedTests": 0, "numFailedTestSuites": 1}
     elif mode == "skipped":
         data = {"numTotalTests": 3, "numFailedTests": 0, "numPendingTests": 3}
+    elif mode.startswith("junit"):
+        ok = "MARK" in src
+        cases = ['<testcase name="t1"/>', '<testcase name="t2"/>']
+        if mode == "junit-skipped":
+            cases.append('<testcase name="t3"><skipped/></testcase>')
+        elif mode == "junit-error":
+            cases.append('<testcase name="t3"><error message="boom"/></testcase>')
+        else:
+            cases.append('<testcase name="t3"/>' if ok else '<testcase name="t3"><failure message="x"/></testcase>')
+        open(out, "w").write('<?xml version="1.0"?><testsuites><testsuite name="s">' + "".join(cases) + "</testsuite></testsuites>")
+        sys.exit(0)
     elif mode == "exit1":
         open(out, "w").write(json.dumps({"numTotalTests": 3, "numFailedTests": 0}))
         sys.exit(1)
@@ -216,6 +227,28 @@ class MutateTest(unittest.TestCase):
 
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("| S | 検出 |", proc.stdout)
+
+    def junit(self, mode, old="// MARK", new="// gone"):
+        os.environ["FAKE_MODE"] = mode
+        try:
+            return self.run_one(old, new)
+        finally:
+            del os.environ["FAKE_MODE"]
+
+    def test_junit_xml_detects_a_failing_testcase(self):
+        r = self.junit("junit")
+        self.assertEqual((r.verdict, r.failed, r.total), (mutate.DETECTED, 1, 3))
+
+    def test_junit_xml_survives_when_all_testcases_pass(self):
+        r = self.junit("junit", old="x ?? y", new="x || y")
+        self.assertEqual((r.verdict, r.failed, r.total), (mutate.SURVIVED, 0, 3))
+
+    def test_junit_xml_skipped_testcase_is_invalid(self):
+        self.assertEqual(self.junit("junit-skipped", old="x ?? y", new="x || y").verdict, mutate.INVALID)
+
+    def test_junit_xml_error_counts_as_a_failure(self):
+        r = self.junit("junit-error", old="x ?? y", new="x || y")
+        self.assertEqual((r.verdict, r.failed), (mutate.DETECTED, 1))
 
     def test_cli_prints_markdown_rows(self):
         # spec はリポジトリの外に置く（中に置くとハーネスが「未コミットの差分」として正しく拒否する）
