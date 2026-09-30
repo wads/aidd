@@ -12,14 +12,16 @@
 - 作業ツリーが clean でなければ中止する（コミットできない状態では変異しない）
 - 置換対象の出現数がちょうど 1 でなければ、その変異は「無効」
 - 復元は注入前のバイト列を書き戻し、ハッシュ一致を検査する（git を使わない）
-- 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・skipped・件数の減少は「無効」
+- 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・実行できなかったテスト（JUnit の <error>）・
+  基準より増えた skipped・件数の減少は「無効」
+- テストコマンドは PYTHONDONTWRITEBYTECODE=1 で動かす（古い .pyc で判定を誤らないため）
 - 注入前のバイト列は disk（一時ディレクトリ）にも退避し、殺されて残った変異は次の実行の冒頭で復元する
 - 「無効」のときは結果の JSON とテストの出力をリポジトリの外へ退避し、備考にパスを書く（出所を後から追える）
 
 使い方（1 件）:
   mutate.py --repo . --file src/a.ts --old 'x ?? y' --new 'x || y' \
             --test 'npx vitest run --reporter=json --outputFile=/tmp/vitest.json src/a.test.ts' \
-            --json-out /tmp/vitest.json [--baseline-total 42] [--label M07]
+            --result-out /tmp/vitest.json [--baseline-total 42] [--label M07]
 
 複数件は --spec で JSON 配列（各要素は file / old / new / label）。
 出力は PR にそのまま貼れる Markdown の表の行。
@@ -29,7 +31,8 @@
   3  作業ツリーに未コミットの差分がある（変異しない）
   4  復元後の内容が注入前と一致しない、または作業ツリーが clean でない（以後の測定を止めた）
   5  基準の実行（変異なし）が green でない（変異しない）
-  6  前回の中断で残った退避コピーがあるが、今の内容が注入した変異と一致しない（戻さない）
+  6  前回の中断で残った退避コピーがあるが、今の内容が注入した変異と一致しない（戻さない）。
+     今の内容を残すなら --discard-interrupted で退避コピーを捨てる
 
 読める結果: vitest の JSON（--reporter=json --outputFile=...）と JUnit XML
 （vitest --reporter=junit --outputFile=...、pytest --junitxml=...）。形式は中身で見分ける。
@@ -83,8 +86,13 @@ def git_porcelain(repo: Path, ignore: Path | None = None) -> str:
     ).stdout
     lines = [ln for ln in out.splitlines() if ln.strip()]
     if ignore is not None:
+        # porcelain のパスはリポジトリのルート基準（--repo がサブディレクトリでも）
+        top = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
         try:
-            rel = ignore.resolve().relative_to(repo.resolve()).as_posix()
+            rel = ignore.resolve().relative_to(Path(top).resolve()).as_posix()
         except ValueError:
             rel = None
         if rel:
@@ -114,12 +122,25 @@ def keep_evidence(label: str, raw_json: bytes | None, proc) -> Path:
     """「無効」の出所を後から追えるよう、消す前の結果と出力をリポジトリの外へ退避する"""
     d = Path(tempfile.mkdtemp(prefix="mutate-invalid-"))
     safe = "".join(c if c.isalnum() else "_" for c in label)[:40] or "M"
+    ext = "xml" if raw_json is not None and raw_json.lstrip().startswith(b"<") else "json"
     if raw_json is not None:
-        (d / f"{safe}.json").write_bytes(raw_json)
+        (d / f"{safe}.{ext}").write_bytes(raw_json)
     if proc is not None:
         (d / f"{safe}.stdout.txt").write_text(proc.stdout or "", encoding="utf-8")
         (d / f"{safe}.stderr.txt").write_text(proc.stderr or "", encoding="utf-8")
-    return d / f"{safe}.json" if raw_json is not None else d
+    return d / f"{safe}.{ext}" if raw_json is not None else d
+
+
+def test_env() -> dict:
+    """テストコマンドの環境。Python の .pyc を書かせない。
+
+    .pyc の有効性はソースの更新時刻（秒）とサイズで判定される。長さが同じ変異を
+    1 秒以内に書き戻すと、変異前・変異後の古い .pyc がそのまま使われ、判定と次の
+    基準の実行を誤らせる（ハッシュ検査・clean 検査では気づけない）。
+    """
+    env = dict(os.environ)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
 
 
 def mutated_marker_path(repo: Path, rel: str) -> Path:
@@ -147,7 +168,8 @@ def recover_interrupted(repo: Path, rel: str) -> bool:
     else:
         raise UnsafeRecovery(
             f"{rel}: 前回の中断で残った退避コピーがあるが、今の内容は注入した変異と一致しない。"
-            f"中断のあとに編集された可能性があるので戻さない。退避コピー: {bak}"
+            f"中断のあとに編集された可能性があるので戻さない。退避コピー: {bak}。"
+            f"今の内容を残すなら --discard-interrupted を付けて実行する"
         )
     bak.unlink()
     if marker.exists():
@@ -155,8 +177,11 @@ def recover_interrupted(repo: Path, rel: str) -> bool:
     return True
 
 
-def parse_results(path: Path) -> tuple[int, int, int] | None:
-    """テスト結果から (failed, total, skipped) を返す。読めなければ None。
+def parse_results(path: Path) -> tuple[int, int, int, int] | None:
+    """テスト結果から (failed, total, skipped, errors) を返す。読めなければ None。
+
+    errors は「テストの失敗」でなく「実行できなかった」もの（JUnit XML の <error>。
+    pytest は収集の失敗をこれで出す）。
 
     vitest の JSON（--reporter=json）と JUnit XML（vitest --reporter=junit・pytest --junitxml）を読む。
     """
@@ -169,22 +194,23 @@ def parse_results(path: Path) -> tuple[int, int, int] | None:
     return parse_vitest_json(text)
 
 
-def parse_junit_xml(text: str) -> tuple[int, int, int] | None:
+def parse_junit_xml(text: str) -> tuple[int, int, int, int] | None:
     try:
         root = ET.fromstring(text)
     except ET.ParseError:
         return None
     cases = list(root.iter("testcase"))
-    failed = sum(1 for c in cases if c.find("failure") is not None or c.find("error") is not None)
+    failed = sum(1 for c in cases if c.find("failure") is not None)
+    errors = sum(1 for c in cases if c.find("error") is not None)
     skipped = sum(1 for c in cases if c.find("skipped") is not None)
     # 収集段階で落ちたスイートは testcase を持たず、testsuite の errors 属性にだけ出ることがある
     suite_errors = sum(int(s.get("errors", "0") or 0) for s in root.iter("testsuite"))
     if not cases and suite_errors > 0:
         return None
-    return failed, len(cases), skipped
+    return failed, len(cases), skipped, errors
 
 
-def parse_vitest_json(text: str) -> tuple[int, int, int] | None:
+def parse_vitest_json(text: str) -> tuple[int, int, int, int] | None:
     try:
         data = json.loads(text)
     except ValueError:
@@ -195,7 +221,7 @@ def parse_vitest_json(text: str) -> tuple[int, int, int] | None:
     # 収集段階で落ちたファイルは numFailedTestSuites に出るが numTotalTests に乗らないことがある
     if int(data.get("numFailedTestSuites", 0)) > 0 and total == 0:
         return None
-    return failed, total, skipped
+    return failed, total, skipped, 0
 
 
 def run_one(
@@ -207,6 +233,7 @@ def run_one(
     json_out: Path,
     baseline_total: int | None,
     label: str,
+    baseline_skipped: int = 0,
 ) -> Result:
     if recover_interrupted(repo, rel):
         print(f"前回の中断で残っていた変異を復元した: {rel}", file=sys.stderr)
@@ -232,7 +259,7 @@ def run_one(
         target.write_bytes(mutated)
         if json_out.exists():
             json_out.unlink()
-        proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
+        proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True, env=test_env())
         parsed = parse_results(json_out)
         if json_out.exists():
             raw_json = json_out.read_bytes()
@@ -259,11 +286,13 @@ def run_one(
 
     if parsed is None:
         return invalid(0, 0, "テスト結果を読めない（収集失敗・構文エラー・出力ファイル無し）")
-    failed, total, skipped = parsed
+    failed, total, skipped, errors = parsed
     if total == 0:
         return invalid(failed, total, "テストが 1 件も実行されていない")
-    if skipped > 0:
-        return invalid(failed, total, f"skipped が {skipped} 件（実行不能を含む）")
+    if errors > 0:
+        return invalid(failed, total, f"実行できなかったテストが {errors} 件（収集の失敗・構文エラーを含む）")
+    if skipped > baseline_skipped:
+        return invalid(failed, total, f"skipped が {skipped} 件（基準は {baseline_skipped} 件。実行不能を含む）")
     if baseline_total is not None and total < baseline_total:
         return invalid(failed, total, f"件数が基準 {baseline_total} を下回る")
     if failed == 0 and proc is not None and proc.returncode != 0:
@@ -277,13 +306,16 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", required=True)
     ap.add_argument("--test", required=True, help="テスト実行コマンド（結果を --json-out のパスへ書かせる。vitest の JSON か JUnit XML）")
-    ap.add_argument("--json-out", required=True, help="--test が書く結果ファイルのパス（vitest の JSON か JUnit XML）")
+    ap.add_argument("--result-out", "--json-out", dest="json_out", required=True,
+                    help="--test が書く結果ファイルのパス（vitest の JSON か JUnit XML）。--json-out は旧名")
     ap.add_argument("--baseline-total", type=int, default=None)
     ap.add_argument("--file")
     ap.add_argument("--old")
     ap.add_argument("--new")
     ap.add_argument("--label", default="M")
     ap.add_argument("--spec", help="JSON 配列のファイル。各要素: file / old / new / label")
+    ap.add_argument("--discard-interrupted", action="store_true",
+                    help="前回の中断で残った退避コピーを捨てて終わる（今の内容は変えない。exit 6 の後、手で直した内容を残すとき）")
     args = ap.parse_args(argv)
 
     # SIGTERM でも finally の復元を通す（SIGKILL は防げないので disk の退避で次回に戻す）
@@ -304,6 +336,14 @@ def main(argv: list[str] | None = None) -> int:
             ap.error("--file / --old / --new か --spec を指定する")
         specs = [{"file": args.file, "old": args.old, "new": args.new, "label": args.label}]
 
+    if args.discard_interrupted:
+        for rel in dict.fromkeys(s["file"] for s in specs):
+            for p in (backup_path(repo, rel), mutated_marker_path(repo, rel)):
+                if p.exists():
+                    p.unlink()
+                    print(f"退避コピーを捨てた（今の内容は変えていない）: {rel} {p}", file=sys.stderr)
+        return 0
+
     # 中断で残った変異は clean 検査より先に戻す（先に検査すると、残った変異を差分と見て止まる）
     try:
         for rel in dict.fromkeys(s["file"] for s in specs):
@@ -323,21 +363,23 @@ def main(argv: list[str] | None = None) -> int:
     # どの変異も「検出」と判定されてしまう
     if json_out.exists():
         json_out.unlink()
-    base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True)
+    base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True, env=test_env())
     parsed = parse_results(json_out)
     if json_out.exists():
         json_out.unlink()
-    if parsed is None or parsed[0] > 0 or parsed[2] > 0 or parsed[1] == 0 or base.returncode != 0:
+    if parsed is None or parsed[0] > 0 or parsed[3] > 0 or parsed[1] == 0 or base.returncode != 0:
         print(f"中止: 基準の実行（変異なし）が green でない: 結果={parsed} 終了コード={base.returncode}", file=sys.stderr)
         return 5
     baseline_total = args.baseline_total if args.baseline_total is not None else parsed[1]
+    baseline_skipped = parsed[2]
 
     print("| 変異 | 判定 | 失敗 / 全件 | 備考 |")
     print("|---|---|---|---|")
     for i, s in enumerate(specs, 1):
         label = s.get("label") or f"M{i:02d}"
         try:
-            r = run_one(repo, s["file"], s["old"], s["new"], args.test, json_out, baseline_total, label)
+            r = run_one(repo, s["file"], s["old"], s["new"], args.test, json_out, baseline_total, label,
+                        baseline_skipped)
         except DirtyTree as e:
             print(str(e), file=sys.stderr)
             return 3

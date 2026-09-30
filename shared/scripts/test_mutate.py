@@ -32,7 +32,7 @@ FAKE_RUNNER = textwrap.dedent("""\
     elif mode.startswith("junit"):
         ok = "MARK" in src
         cases = ['<testcase name="t1"/>', '<testcase name="t2"/>']
-        if mode == "junit-skipped":
+        if mode in ("junit-skipped", "junit-base-skip"):
             cases.append('<testcase name="t3"><skipped/></testcase>')
         elif mode == "junit-error":
             cases.append('<testcase name="t3"><error message="boom"/></testcase>')
@@ -246,9 +246,80 @@ class MutateTest(unittest.TestCase):
     def test_junit_xml_skipped_testcase_is_invalid(self):
         self.assertEqual(self.junit("junit-skipped", old="x ?? y", new="x || y").verdict, mutate.INVALID)
 
-    def test_junit_xml_error_counts_as_a_failure(self):
+    def test_junit_xml_error_is_invalid_not_detected(self):
+        # pytest は収集の失敗（構文エラーの変異など）を <error> で出す。テストの失敗と区別する
         r = self.junit("junit-error", old="x ?? y", new="x || y")
-        self.assertEqual((r.verdict, r.failed), (mutate.DETECTED, 1))
+        self.assertEqual(r.verdict, mutate.INVALID)
+
+    def test_skipped_tests_in_the_baseline_do_not_block(self):
+        # 基準から skip があるプロジェクトでも使える。無効になるのは skip が基準より増えたときだけ
+        os.environ["FAKE_MODE"] = "junit-base-skip"
+        try:
+            proc = self.cli()
+        finally:
+            del os.environ["FAKE_MODE"]
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("| M-A |", proc.stdout)
+
+    def test_python_bytecode_cache_does_not_mislead_the_verdict(self):
+        # 長さが同じ変異を 1 秒以内に書き戻すと、Python は更新時刻とサイズで有効と見なした
+        # 古い .pyc を使い、変異の判定と次の基準の実行を誤らせる
+        (self.repo / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
+        (self.repo / "calc.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+        (self.repo / "pyrunner.py").write_text(textwrap.dedent("""\
+            import sys
+            sys.path.insert(0, ".")
+            from calc import add
+            ok = add(2, 3) == 5
+            case = '<testcase name="t"/>' if ok else '<testcase name="t"><failure/></testcase>'
+            open(sys.argv[1], "w").write("<testsuites><testsuite>" + case + "</testsuite></testsuites>")
+            """), encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "py"], check=True)
+        spec = [{"file": "calc.py", "old": "a + b", "new": new, "label": f"P{i}"}
+                for i, new in enumerate(["a - b", "a * b", "a - b"])]
+        out = self.repo / "r.xml"
+
+        for _ in range(3):
+            path = Path(tempfile.mkdtemp()) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, mutate.__file__, "--repo", str(self.repo),
+                 "--test", f"{sys.executable} pyrunner.py {out}", "--result-out", str(out), "--spec", str(path)],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.count("| 検出 |"), 3, proc.stdout)
+
+    def test_discard_interrupted_keeps_the_edit_and_removes_the_backup(self):
+        self.interrupt()
+        edited = "const v = 3; // MARK kept\n"
+        (self.repo / "a.ts").write_text(edited, encoding="utf-8")
+
+        proc = self.cli("--discard-interrupted")
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual((self.repo / "a.ts").read_text(encoding="utf-8"), edited)
+        self.assertFalse(mutate.backup_path(self.repo, "a.ts").exists())
+
+    def test_a_leftover_result_file_in_a_subdirectory_repo_is_not_a_diff(self):
+        (self.repo / "sub").mkdir()
+        (self.repo / "sub" / "b.ts").write_text("const w = 1; // MARK\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "sub"], check=True)
+        out = self.repo / "sub" / "out.json"
+        out.write_text("{}", encoding="utf-8")  # 前回の実行の残り
+        path = Path(tempfile.mkdtemp()) / "spec.json"
+        path.write_text(json.dumps([{"file": "b.ts", "old": "// MARK", "new": "// gone", "label": "S"}]), encoding="utf-8")
+
+        proc = subprocess.run(
+            [sys.executable, mutate.__file__, "--repo", str(self.repo / "sub"),
+             "--test", f"{sys.executable} ../runner.py b.ts {out}", "--result-out", str(out), "--spec", str(path)],
+            capture_output=True, text=True,
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("| S | 検出 |", proc.stdout)
 
     def test_cli_prints_markdown_rows(self):
         # spec はリポジトリの外に置く（中に置くとハーネスが「未コミットの差分」として正しく拒否する）
