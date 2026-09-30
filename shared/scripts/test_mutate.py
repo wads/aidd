@@ -32,8 +32,12 @@ FAKE_RUNNER = textwrap.dedent("""\
     elif mode.startswith("junit"):
         ok = "MARK" in src
         cases = ['<testcase name="t1"/>', '<testcase name="t2"/>']
-        if mode in ("junit-skipped", "junit-base-skip"):
+        if mode == "junit-skipped":
             cases.append('<testcase name="t3"><skipped/></testcase>')
+        elif mode == "junit-base-skip":
+            # 基準から skip が 1 件ある。変異では別のテストが落ちる
+            cases = ['<testcase name="t1"/>' if ok else '<testcase name="t1"><failure/></testcase>',
+                     '<testcase name="t2"/>', '<testcase name="t3"><skipped/></testcase>']
         elif mode == "junit-error":
             cases.append('<testcase name="t3"><error message="boom"/></testcase>')
         else:
@@ -259,7 +263,7 @@ class MutateTest(unittest.TestCase):
         finally:
             del os.environ["FAKE_MODE"]
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("| M-A |", proc.stdout)
+        self.assertIn("| M-A | 検出 | 1 / 3 |", proc.stdout)
 
     def test_python_bytecode_cache_does_not_mislead_the_verdict(self):
         # 長さが同じ変異を 1 秒以内に書き戻すと、Python は更新時刻とサイズで有効と見なした
