@@ -6,3 +6,4 @@
 - リスクの高い技術的決定がある
 - スコープ変更が必要
 - 想定外の問題が発生した
+- critical-gate で同じ型の Critical が 2 回目に出た、または 3 回連続で不通過になった（`critical-gate/workflow.md` §3 の停止規則）
