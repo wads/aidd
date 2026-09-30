@@ -334,6 +334,21 @@ class MutateTest(unittest.TestCase):
         subprocess.run([sys.executable, "makerunner.py", str(out)], cwd=self.repo, check=True)
         self.assertNotIn("<failure", out.read_text())
 
+    def test_the_restored_file_gets_a_second_newer_than_the_mutant(self):
+        # 復元した中身に、変異に付けた秒と同じか古い秒が付くと、一致で判定する方式は変異の
+        # キャッシュを、新しさで判定する方式は変異で作った成果物を使い続ける
+        seen = Path(tempfile.mkdtemp()) / "mutated-second.txt"
+        runner = self.repo / "runner.py"
+        runner.write_text(FAKE_RUNNER + textwrap.dedent(f"""\
+            import os
+            open({str(seen)!r}, "w").write(str(int(os.stat("a.ts").st_mtime)))
+            """), encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qam", "runner"], check=True)
+
+        self.run_one("// MARK", "// gone")
+
+        self.assertGreater(int((self.repo / "a.ts").stat().st_mtime), int(seen.read_text()))
+
     def test_every_write_gets_a_second_not_used_before(self):
         # 実行をまたいでも同じ秒を二度付けない（同じ秒・同じサイズの別の内容を作らない）
         seconds = []
