@@ -303,6 +303,24 @@ class MutateTest(unittest.TestCase):
         # 元に戻したファイルは中身だけでなく更新時刻も注入前のまま
         self.assertEqual((self.repo / "calc.txt").stat().st_mtime_ns, before)
 
+    def test_every_write_gets_a_second_not_used_before(self):
+        # 実行をまたいでも同じ秒を二度付けない（同じ秒・同じサイズの別の内容を作らない）
+        seconds = []
+        for _ in range(5):
+            mutate.bump_mtime(self.repo, "a.ts")
+            seconds.append(int((self.repo / "a.ts").stat().st_mtime))
+        self.assertEqual(seconds, sorted(set(seconds)))
+        self.assertEqual(len(set(seconds)), 5)
+
+    def test_recovery_after_a_killed_run_moves_past_the_mutated_second(self):
+        # 復元した内容に、変異に付けた秒と同じ秒が付くと、変異のキャッシュが元の内容に使われる
+        self.interrupt()
+        mutated_second = int(mutate.last_mtime_path(self.repo, "a.ts").read_text())
+
+        self.assertTrue(mutate.recover_interrupted(self.repo, "a.ts"))
+
+        self.assertGreater(int((self.repo / "a.ts").stat().st_mtime), mutated_second)
+
     def test_python_bytecode_cache_does_not_mislead_the_verdict(self):
         # 長さが同じ変異を 1 秒以内に書き戻すと、Python は更新時刻とサイズで有効と見なした
         # 古い .pyc を使い、変異の判定と次の基準の実行を誤らせる
