@@ -14,8 +14,9 @@
 - 復元は注入前のバイト列を書き戻し、ハッシュ一致を検査する（git を使わない）
 - 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・実行できなかったテスト（JUnit の <error>）・
   基準より増えた skipped・件数の減少は「無効」
-- 変異を書くたびに更新時刻を使っていない秒へ進め、元に戻すときは更新時刻も戻す
-  （更新時刻でキャッシュを判定するテストランナーに、古い結果を使わせないため）
+- 変異を書くときも元に戻すときも、更新時刻を使っていない秒へ進める。更新時刻でキャッシュを
+  判定する方式（一致で判定する Python の .pyc、新しさで判定する make・cargo など）に、
+  古い結果を使わせないため。そのため実行後の更新時刻は少し未来になる
 - 注入前のバイト列は disk（一時ディレクトリ）にも退避し、殺されて残った変異は次の実行の冒頭で復元する
 - 「無効」のときは結果ファイルとテストの出力をリポジトリの外へ退避し、備考にパスを書く（出所を後から追える）
 
@@ -29,9 +30,10 @@
             --test '<テストの実行コマンド。結果を JUnit XML で .mutate.xml に書かせる>' \
             --result-out .mutate.xml [--baseline-total 42] [--label M07]
 
-テストランナー別の --test の例（実物で確認したもの）:
-  vitest:  npx vitest run --reporter=junit --outputFile=.mutate.xml
-  pytest:  pytest --junitxml=.mutate.xml
+テストランナー別の --test の例:
+  pytest:  pytest --junitxml=.mutate.xml（ハーネス全体の実行を実物で確認）
+  vitest:  npx vitest run --reporter=junit --outputFile=.mutate.xml（出力の読み取りを実物で確認。
+           ハーネス全体の実行は未確認）
   ほかのランナーも、JUnit XML を書かせる設定があれば同じ形で使える
 
 複数件は --spec で JSON 配列（各要素は file / old / new / label）。
@@ -149,10 +151,11 @@ def last_mtime_path(repo: Path, rel: str) -> Path:
 def bump_mtime(repo: Path, rel: str) -> None:
     """ファイルの更新時刻を、まだ使っていない新しい秒へ進める。
 
-    更新時刻（秒）とサイズでキャッシュの有効性を判定するテストランナーは言語を問わずある
-    （例: Python の .pyc）。長さが同じ変異を 1 秒以内に書き戻すと、古いキャッシュがそのまま
-    使われ、変異の判定と次の基準の実行を誤らせる（ハッシュ検査・clean 検査では気づけない）。
-    書き込みのたびに一度も使っていない秒を付ければ、どのキャッシュも作り直される。
+    更新時刻でキャッシュの有効性を判定する方式は言語を問わずある。一致で判定するもの
+    （例: Python の .pyc は更新時刻の秒とサイズ）では、長さが同じ変異を 1 秒以内に書き戻すと
+    古いキャッシュが使われる。新しさで判定するもの（例: make）では、更新時刻が成果物より
+    古いと作り直されない。どちらもハッシュ検査・clean 検査では気づけない。書き込みのたびに
+    一度も使っていない、それまでより新しい秒を付ければ、どちらの方式でも作り直される。
     """
     state = last_mtime_path(repo, rel)
     try:
@@ -186,7 +189,7 @@ def recover_interrupted(repo: Path, rel: str) -> bool:
         pass
     elif marker.exists() and current == marker.read_text(encoding="utf-8").strip():
         (repo / rel).write_bytes(original)
-        # 注入前の更新時刻は分からないので、使っていない秒へ進める（変異後の時刻と重ねない）
+        # 通常の復元と同じく、使っていない秒へ進める（変異後の時刻と重ねず、成果物より新しくする）
         bump_mtime(repo, rel)
     else:
         raise UnsafeRecovery(
@@ -274,7 +277,6 @@ def run_one(
     bak = backup_path(repo, rel)
     marker = mutated_marker_path(repo, rel)
     mutated = text.replace(old, new, 1).encode("utf-8")
-    original_times = (target.stat().st_atime_ns, target.stat().st_mtime_ns)
     raw_json: bytes | None = None
     proc = None
     try:
@@ -290,8 +292,10 @@ def run_one(
             raw_json = json_out.read_bytes()
     finally:
         target.write_bytes(original)
-        # 中身と一緒に更新時刻も注入前に戻す（注入前の内容のキャッシュはそのまま正しい）
-        os.utime(target, ns=original_times)
+        # 更新時刻は注入前へ戻さず、使っていない秒へ進める。過去へ戻すと、「成果物が元の
+        # ファイルより新しければ作り直さない」方式（make・cargo・tsc -b など）が、変異の中身で
+        # 作った成果物を使い続ける。失うのは元の中身のキャッシュの再利用だけ
+        bump_mtime(repo, rel)
         if bak.exists():
             bak.unlink()
         if marker.exists():

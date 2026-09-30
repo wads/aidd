@@ -287,7 +287,6 @@ class MutateTest(unittest.TestCase):
         spec = [{"file": "calc.txt", "old": "a + b", "new": new, "label": f"K{i}"}
                 for i, new in enumerate(["a - b", "a * b", "a - b"])]
         out = self.repo / "r.xml"
-        before = (self.repo / "calc.txt").stat().st_mtime_ns
 
         for _ in range(3):
             path = Path(tempfile.mkdtemp()) / "spec.json"
@@ -300,8 +299,40 @@ class MutateTest(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout.count("| 検出 |"), 3, proc.stdout)
 
-        # 元に戻したファイルは中身だけでなく更新時刻も注入前のまま
-        self.assertEqual((self.repo / "calc.txt").stat().st_mtime_ns, before)
+
+    def test_a_runner_that_rebuilds_only_when_the_source_is_newer_does_not_keep_the_mutant(self):
+        # make・cargo・tsc -b のように「成果物が元ファイルより新しければ作り直さない」方式。
+        # 元に戻したファイルの更新時刻が成果物より古いと、変異の入った成果物が使われ続ける
+        (self.repo / ".gitignore").write_text("build.out\n", encoding="utf-8")
+        (self.repo / "calc.txt").write_text("a + b\n", encoding="utf-8")
+        (self.repo / "makerunner.py").write_text(textwrap.dedent("""\
+            import os, sys
+            src, out = "calc.txt", "build.out"
+            if not os.path.exists(out) or os.stat(out).st_mtime < os.stat(src).st_mtime:
+                open(out, "w").write(open(src).read())
+            ok = open(out).read().strip() == "a + b"
+            case = '<testcase name="t"/>' if ok else '<testcase name="t"><failure/></testcase>'
+            open(sys.argv[1], "w").write("<testsuites><testsuite>" + case + "</testsuite></testsuites>")
+            """), encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "make"], check=True)
+        out = self.repo / "r.xml"
+        spec = [{"file": "calc.txt", "old": "a + b", "new": "a - b", "label": "B"}]
+
+        for _ in range(2):
+            path = Path(tempfile.mkdtemp()) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, mutate.__file__, "--repo", str(self.repo),
+                 "--test", f"{sys.executable} makerunner.py {out}", "--result-out", str(out), "--spec", str(path)],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("| B | 検出 |", proc.stdout)
+
+        # ハーネスの後に利用者が普通にテストを流しても、変異の入った成果物は使われない
+        subprocess.run([sys.executable, "makerunner.py", str(out)], cwd=self.repo, check=True)
+        self.assertNotIn("<failure", out.read_text())
 
     def test_every_write_gets_a_second_not_used_before(self):
         # 実行をまたいでも同じ秒を二度付けない（同じ秒・同じサイズの別の内容を作らない）
