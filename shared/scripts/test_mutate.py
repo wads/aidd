@@ -265,6 +265,44 @@ class MutateTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("| M-A | 検出 | 1 / 3 |", proc.stdout)
 
+    def test_a_runner_that_caches_by_mtime_and_size_does_not_mislead_the_verdict(self):
+        # 更新時刻（秒）とサイズで結果をキャッシュするランナーは言語を問わずある（Python の .pyc など）。
+        # 長さが同じ変異を 1 秒以内に書き戻すと、古いキャッシュが使われて判定を誤る
+        (self.repo / ".gitignore").write_text(".cache.json\n", encoding="utf-8")
+        (self.repo / "calc.txt").write_text("a + b\n", encoding="utf-8")
+        (self.repo / "cacherunner.py").write_text(textwrap.dedent("""\
+            import json, os, sys
+            st = os.stat("calc.txt")
+            key = f"{int(st.st_mtime)}:{st.st_size}"
+            cache = json.load(open(".cache.json")) if os.path.exists(".cache.json") else {}
+            if key not in cache:
+                cache[key] = open("calc.txt").read().strip() == "a + b"
+                json.dump(cache, open(".cache.json", "w"))
+            ok = cache[key]
+            case = '<testcase name="t"/>' if ok else '<testcase name="t"><failure/></testcase>'
+            open(sys.argv[1], "w").write("<testsuites><testsuite>" + case + "</testsuite></testsuites>")
+            """), encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "cache"], check=True)
+        spec = [{"file": "calc.txt", "old": "a + b", "new": new, "label": f"K{i}"}
+                for i, new in enumerate(["a - b", "a * b", "a - b"])]
+        out = self.repo / "r.xml"
+        before = (self.repo / "calc.txt").stat().st_mtime_ns
+
+        for _ in range(3):
+            path = Path(tempfile.mkdtemp()) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, mutate.__file__, "--repo", str(self.repo),
+                 "--test", f"{sys.executable} cacherunner.py {out}", "--result-out", str(out), "--spec", str(path)],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.count("| 検出 |"), 3, proc.stdout)
+
+        # 元に戻したファイルは中身だけでなく更新時刻も注入前のまま
+        self.assertEqual((self.repo / "calc.txt").stat().st_mtime_ns, before)
+
     def test_python_bytecode_cache_does_not_mislead_the_verdict(self):
         # 長さが同じ変異を 1 秒以内に書き戻すと、Python は更新時刻とサイズで有効と見なした
         # 古い .pyc を使い、変異の判定と次の基準の実行を誤らせる

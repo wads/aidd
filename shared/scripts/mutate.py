@@ -14,14 +14,25 @@
 - 復元は注入前のバイト列を書き戻し、ハッシュ一致を検査する（git を使わない）
 - 判定は「検出 / 生存 / 無効」の 3 値。テストの収集失敗・実行できなかったテスト（JUnit の <error>）・
   基準より増えた skipped・件数の減少は「無効」
-- テストコマンドは PYTHONDONTWRITEBYTECODE=1 で動かす（古い .pyc で判定を誤らないため）
+- 変異を書くたびに更新時刻を使っていない秒へ進め、元に戻すときは更新時刻も戻す
+  （更新時刻でキャッシュを判定するテストランナーに、古い結果を使わせないため）
 - 注入前のバイト列は disk（一時ディレクトリ）にも退避し、殺されて残った変異は次の実行の冒頭で復元する
-- 「無効」のときは結果の JSON とテストの出力をリポジトリの外へ退避し、備考にパスを書く（出所を後から追える）
+- 「無効」のときは結果ファイルとテストの出力をリポジトリの外へ退避し、備考にパスを書く（出所を後から追える）
+
+テスト結果の形式:
+  JUnit XML が標準（テストランナーの多くが出せる）。--test にはテストの実行コマンドを、
+  --result-out にはそのコマンドが書く JUnit XML のパスを渡す。互換のため vitest の JSON
+  （--reporter=json）も読める。形式は中身で見分ける。
 
 使い方（1 件）:
   mutate.py --repo . --file src/a.ts --old 'x ?? y' --new 'x || y' \
-            --test 'npx vitest run --reporter=json --outputFile=/tmp/vitest.json src/a.test.ts' \
-            --result-out /tmp/vitest.json [--baseline-total 42] [--label M07]
+            --test '<テストの実行コマンド。結果を JUnit XML で .mutate.xml に書かせる>' \
+            --result-out .mutate.xml [--baseline-total 42] [--label M07]
+
+テストランナー別の --test の例（実物で確認したもの）:
+  vitest:  npx vitest run --reporter=junit --outputFile=.mutate.xml
+  pytest:  pytest --junitxml=.mutate.xml
+  ほかのランナーも、JUnit XML を書かせる設定があれば同じ形で使える
 
 複数件は --spec で JSON 配列（各要素は file / old / new / label）。
 出力は PR にそのまま貼れる Markdown の表の行。
@@ -33,20 +44,19 @@
   5  基準の実行（変異なし）が green でない（変異しない）
   6  前回の中断で残った退避コピーがあるが、今の内容が注入した変異と一致しない（戻さない）。
      今の内容を残すなら --discard-interrupted で退避コピーを捨てる
-
-読める結果: vitest の JSON（--reporter=json --outputFile=...）と JUnit XML
-（vitest --reporter=junit --outputFile=...、pytest --junitxml=...）。形式は中身で見分ける。
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import json
 import os
 import signal
 import subprocess
 import sys
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
@@ -131,16 +141,27 @@ def keep_evidence(label: str, raw_json: bytes | None, proc) -> Path:
     return d / f"{safe}.{ext}" if raw_json is not None else d
 
 
-def test_env() -> dict:
-    """テストコマンドの環境。Python の .pyc を書かせない。
+def last_mtime_path(repo: Path, rel: str) -> Path:
+    """このファイルに最後に付けた更新時刻（秒）。別の実行とも重ならないよう、実行をまたいで残す"""
+    return backup_path(repo, rel).with_suffix(".lastmtime")
 
-    .pyc の有効性はソースの更新時刻（秒）とサイズで判定される。長さが同じ変異を
-    1 秒以内に書き戻すと、変異前・変異後の古い .pyc がそのまま使われ、判定と次の
-    基準の実行を誤らせる（ハッシュ検査・clean 検査では気づけない）。
+
+def bump_mtime(repo: Path, rel: str) -> None:
+    """ファイルの更新時刻を、まだ使っていない新しい秒へ進める。
+
+    更新時刻（秒）とサイズでキャッシュの有効性を判定するテストランナーは言語を問わずある
+    （例: Python の .pyc）。長さが同じ変異を 1 秒以内に書き戻すと、古いキャッシュがそのまま
+    使われ、変異の判定と次の基準の実行を誤らせる（ハッシュ検査・clean 検査では気づけない）。
+    書き込みのたびに一度も使っていない秒を付ければ、どのキャッシュも作り直される。
     """
-    env = dict(os.environ)
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
-    return env
+    state = last_mtime_path(repo, rel)
+    try:
+        last = int(state.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        last = 0
+    t = max(math.ceil(time.time()) + 1, last + 1)
+    os.utime(repo / rel, (t, t))
+    state.write_text(str(t), encoding="utf-8")
 
 
 def mutated_marker_path(repo: Path, rel: str) -> Path:
@@ -165,6 +186,8 @@ def recover_interrupted(repo: Path, rel: str) -> bool:
         pass
     elif marker.exists() and current == marker.read_text(encoding="utf-8").strip():
         (repo / rel).write_bytes(original)
+        # 注入前の更新時刻は分からないので、使っていない秒へ進める（変異後の時刻と重ねない）
+        bump_mtime(repo, rel)
     else:
         raise UnsafeRecovery(
             f"{rel}: 前回の中断で残った退避コピーがあるが、今の内容は注入した変異と一致しない。"
@@ -251,20 +274,24 @@ def run_one(
     bak = backup_path(repo, rel)
     marker = mutated_marker_path(repo, rel)
     mutated = text.replace(old, new, 1).encode("utf-8")
+    original_times = (target.stat().st_atime_ns, target.stat().st_mtime_ns)
     raw_json: bytes | None = None
     proc = None
     try:
         bak.write_bytes(original)
         marker.write_text(sha256(mutated), encoding="utf-8")
         target.write_bytes(mutated)
+        bump_mtime(repo, rel)
         if json_out.exists():
             json_out.unlink()
-        proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True, env=test_env())
+        proc = subprocess.run(test_cmd, shell=True, cwd=str(repo), capture_output=True, text=True)
         parsed = parse_results(json_out)
         if json_out.exists():
             raw_json = json_out.read_bytes()
     finally:
         target.write_bytes(original)
+        # 中身と一緒に更新時刻も注入前に戻す（注入前の内容のキャッシュはそのまま正しい）
+        os.utime(target, ns=original_times)
         if bak.exists():
             bak.unlink()
         if marker.exists():
@@ -305,9 +332,9 @@ def run_one(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", required=True)
-    ap.add_argument("--test", required=True, help="テスト実行コマンド（結果を --json-out のパスへ書かせる。vitest の JSON か JUnit XML）")
-    ap.add_argument("--result-out", "--json-out", dest="json_out", required=True,
-                    help="--test が書く結果ファイルのパス（vitest の JSON か JUnit XML）。--json-out は旧名")
+    ap.add_argument("--test", required=True, help="テストの実行コマンド（結果を --result-out のパスへ JUnit XML で書かせる）")
+    ap.add_argument("--result-out", "--json-out", dest="json_out", metavar="RESULT_OUT", required=True,
+                    help="--test が書く結果ファイルのパス（JUnit XML。vitest の JSON も可）。--json-out は旧名")
     ap.add_argument("--baseline-total", type=int, default=None)
     ap.add_argument("--file")
     ap.add_argument("--old")
@@ -363,7 +390,7 @@ def main(argv: list[str] | None = None) -> int:
     # どの変異も「検出」と判定されてしまう
     if json_out.exists():
         json_out.unlink()
-    base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True, env=test_env())
+    base = subprocess.run(args.test, shell=True, cwd=str(repo), capture_output=True, text=True)
     parsed = parse_results(json_out)
     if json_out.exists():
         json_out.unlink()
