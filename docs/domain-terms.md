@@ -5,7 +5,7 @@ status: accepted
 updated: 2026-09-09
 ---
 
-# 用語と判断領域（domain terms）
+# 判断領域（domain terms）
 
 ADR の frontmatter `topic` に使える値は下の「判断領域」表に限る。合う値が無ければ、その ADR と同じコミットでここに行を足す。有効 ADR の一覧は [adr/INDEX.md](adr/INDEX.md)（生成物。リポジトリルートで `python3 shared/scripts/adr_index.py docs/adr` を実行して再生成）。規約は `shared/rules/common.md`「Project Binding」と `adr` skill、経緯は [ADR-0008](adr/0008-adr-index-and-links.md)。
 

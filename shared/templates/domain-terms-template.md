@@ -5,7 +5,7 @@ status: accepted
 updated: YYYY-MM-DD
 ---
 
-# 用語と判断領域（domain terms）
+# 判断領域（domain terms）
 
 ADR の frontmatter `topic` に使える値は下の「判断領域」表に限る。合う値が無ければ、その ADR と同じコミットでここに行を足す。有効 ADR の一覧は [adr/INDEX.md](adr/INDEX.md)（生成物。`adr_index.py` で再生成）。
 
@@ -17,6 +17,4 @@ ADR の frontmatter `topic` に使える値は下の「判断領域」表に限�
 |---|---|
 | `{topic-name}` | {何についての判断か、一行} |
 
-## 用語
-
-（任意。プロジェクト固有の用語と一行の定義。ADR・設計書・Issue で同じ言葉を使うための表）
+業務の言葉（ドメインの用語）は本書ではなく用語集 [glossary.md](glossary.md) が正本。本書は ADR を引くための判断領域タグだけを持ち、用語の定義は置かない（ADR-0011）。
