@@ -70,7 +70,8 @@ Codex を併用する場合は `AGENTS.md` から `shared/rules/common.md` と `
 | `shared/rules/` | 共通ルール（Binding 規約を含む） |
 | `shared/templates/` | 汎用テンプレート |
 | `shared/scripts/` | 補助スクリプト（ADR 索引の生成・照合 `adr_index.py`、変異注入ハーネス `mutate.py` とそれぞれのテスト） |
-| `docs/domain-terms.md` | 用語と判断領域（ADR の topic 語彙表）。利用側は `{records_root}/domain-terms.md` に置く |
+| `docs/domain-terms.md` | 判断領域（ADR の topic 語彙表）。利用側は `{records_root}/domain-terms.md` に置く |
+| `shared/templates/glossary-template.md` | 用語集（業務の言葉の正本）のテンプレート。利用側は `{records_root}/glossary.md` に置く（ADR-0011） |
 | `docs/` | ADR、設計、チュートリアル、マニュアル |
 
 ## Skills
