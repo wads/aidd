@@ -14,7 +14,7 @@ user-invocable: true
 ## 入力
 
 - 確定版の受入れ条件・品質条件（P2 要求整理、AC/QC ID）
-- 設計書・ADR（あれば）
+- 合意した設計（`design-docs/SKILL.md` の定義）・ADR（あれば）
 - P2.5 プロトタイピングを実施した場合は `IMPLEMENTATION_PROMPT.md`
 
 ## 出力

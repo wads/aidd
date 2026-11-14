@@ -2,11 +2,11 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-09
+updated: 2026-11-11
 topic: [records, tooling]
 summary: 汎用テンプレートとして skill を .claude/skills/ に集約し、Issue は GitHub、記録先は CLAUDE.md の Binding で一度だけ宣言する
 supersedes: [0001]
-amended_by: [0008]
+amended_by: [0008, 0012]
 ---
 
 # [ADR-0002] aidd 汎用テンプレートへの適応
