@@ -2,11 +2,12 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-10-06
+updated: 2026-11-15
 topic: [records, workflow]
 summary: 業務の言葉の正本を用語集 glossary.md とし、語彙表 domain-terms.md は ADR の判断領域だけを持つ。載せる語の基準・名前の導き方・追加の時機（P6 は仮の名前と用語集 PR の同時承認）を共通ルールに置く
 amends: [0008]
 considered: [0002, 0006, 0007, 0009, 0010]
+amended_by: [0012]
 ---
 
 # [ADR-0011] 用語集をユビキタス言語の正本とし、追加の規則を共通ルールに置く

@@ -6,8 +6,8 @@ updated: 2026-11-11
 topic: [records, workflow]
 summary: P4 の設計は視点ごとに snapshot で合意し、Issue ごとの連番の設計書をやめて、レイヤー・コンポーネント単位の設計ドキュメントを書き換えて保守する。snapshot は Issue の途中の設計の元とし、完了後に消す
 issue: wads/aidd#43
-amends: [0002, 0008, 0009]
-considered: [0006, 0007, 0010, 0011]
+amends: [0002, 0008, 0009, 0011]
+considered: [0006, 0007, 0010]
 ---
 
 # [ADR-0012] 設計を視点ごとに snapshot で合意し、設計ドキュメントをコンポーネント単位で保守する
@@ -75,15 +75,15 @@ AAR 2026-11-07 で、人間から次の期待が出た。
 - snapshot は、ローカルの控えがバージョン管理の外にあり、公開ページも人が消せる。失うと、合意した設計を再構成できない（P4 で再合意する）
 - snapshot を消したあとは、合意の 1 行の URL が開けなくなる。残るのは、合意した事実と視点の名前だけになる
 - 視点ごとの合意は、設計書 1 本の承認より往復が増える。新方式の最初の 2 件で、往復と分量を P8 振り返りで観察し、必須の視点や順を見直す
-- 新旧の方式が併存する間、ゲートと後続の手順は、snapshot の合意した視点と、既存の設計書の両方を読む
+- 新旧の方式が併存する間、ゲートと後続の手順は、snapshot の合意した視点と、既存の設計書の両方を読む。移行のための但し書き（この ADR の適用の時点で P4 を終えていた Issue の読み替え）は、該当する Issue がすべて完了したら消す
 - 公開ページが使えない環境（Codex など）では、ローカルの控えを 1 枚として扱う。代替の公開先は、ADR-0009 のとおり未定のままにする
 
 ## 影響範囲
 
-- `.claude/skills/design-docs/`（SKILL.md、workflow.md、template.md）、`context-snapshot/`（SKILL.md、workflow.md）、`review/acceptance.md`、`critical-gate/`（SKILL.md、workflow.md、lenses.md）、`tdd-cycle/workflow.md`、`implementation-plan/`、`dev/`、`adr/workflow.md`、`stacked-pr/workflow.md`、`requirements/output-format.md`
+- `.claude/skills/design-docs/`（SKILL.md、workflow.md、template.md）、`context-snapshot/`（SKILL.md、workflow.md）、`review/acceptance.md`、`critical-gate/`（SKILL.md、workflow.md、lenses.md）、`tdd-cycle/workflow.md`、`implementation-plan/`、`dev/`、`adr/workflow.md`、`stacked-pr/workflow.md`、`requirements/output-format.md`、`tdd-cycle/SKILL.md`
 - `shared/rules/common.md`、`shared/templates/ac-verification-table.md`
-- `README.md`、`docs/manual.md`、`docs/tutorial.md`、`docs/design/0001`・`0002`（旧方式の記述を直接更新する）、`docs/assets/dev-phase-overview.svg`
-- 修正する ADR: ADR-0009（決定 1 の「設計書を必ず作る」、決定 2、決定 3 の「作り直す」「途中版を残す」）、ADR-0002（設計書の連番）、ADR-0008（決定 8 の「設計書の Replaces は変えない」）。ADR-0009 の決定 4（ゲートの設計レンズ）と決定 5（「ADR なし」の確定）は、照合先を設計の合意に変えて残す
+- `README.md`、`docs/manual.md`、`docs/tutorial.md`、`docs/design/0001`・`0002`（旧方式の記述を直接更新する）、`docs/assets/dev-phase-overview.svg`、`docs/design/intent-driven-development.md`（末尾に Delta を追記）、`.gitignore` のコメント
+- 修正する ADR: ADR-0009（決定 1 の「設計書を必ず作る」、決定 2、決定 3 の「作り直す」「途中版を残す」）、ADR-0002（設計書の連番）、ADR-0008（決定 8 の「設計書の Replaces は変えない」）。ADR-0009 の決定 4（ゲートの設計レンズ）と決定 5（「ADR なし」の確定）は、照合先を設計の合意に変えて残す。ADR-0011（決定 4 のうち P4 の句。用語集へ追加する時機を、設計承認から視点の合意に変える。ほかの決定は残す）
 - 利用側プロジェクト: この変更のマージの時点で P4 を終えていない Issue から適用する。既存の設計書は書き換えない
 
 ## 議論ログ
@@ -100,3 +100,5 @@ AAR 2026-11-07 で、人間から次の期待が出た。
 - [2026-11-12] Human: 決定 4 への 2 文の追記を承認
 - [2026-11-12] AI: P5 の 2 回目のゲートで、決定 4 に「または『設計書なし』の確定」が抜けていると指摘された。QC-8 の文を句ごとに突き合わせ、欠けはこの 1 句だけと確認
 - [2026-11-12] Human: 1 句の追記を承認
+- [2026-11-15] AI: P7 のゲート（フル版）で、ADR-0011 の決定 4 の P4 の句を変えているのに considered と宣言している、と指摘された（Critical-16）
+- [2026-11-15] Human: ADR-0011 への宣言を amends に直すこと、移行の但し書きを消す条件をトレードオフに足すことを承認
