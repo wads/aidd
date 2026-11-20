@@ -2,10 +2,11 @@
 type: adr
 scope: all
 status: accepted
-updated: 2026-09-12
+updated: 2026-11-11
 topic: [workflow, records, tooling]
 summary: 構造基準（コード新設・責務分割や依存方向の変更）で P4 設計を必須化し設計書に構造図・命名・負債方針を持たせる。snapshot は Artifact で 1 URL を判断ポイントごとに更新し、ゲートに設計書欠落と負債増大のレンズを足す
 considered: [0002, 0006, 0007, 0008]
+amended_by: [0012]
 ---
 
 # [ADR-0009] 構造基準による設計協議の必須化と snapshot の常時公開

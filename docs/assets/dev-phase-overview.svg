@@ -119,10 +119,10 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 <text class="th" x="125" y="623" text-anchor="middle" dominant-baseline="central">P4 設計</text>
 <text class="ts" x="125" y="645" text-anchor="middle" dominant-baseline="central">design-docs</text>
 </g>
-<g class="c-teal">
-<rect x="505" y="604" width="125" height="56" rx="4" stroke-dasharray="4 3"/>
-<text class="th" x="567.5" y="623" text-anchor="middle" dominant-baseline="central">設計書</text>
-<text class="ts" x="567.5" y="645" text-anchor="middle" dominant-baseline="central">判断駆動で作成</text>
+<g class="c-purple">
+<rect x="225" y="604" width="125" height="56" rx="4" stroke-dasharray="4 3"/>
+<text class="th" x="287.5" y="623" text-anchor="middle" dominant-baseline="central">設計の合意</text>
+<text class="ts" x="287.5" y="645" text-anchor="middle" dominant-baseline="central" textLength="113" lengthAdjust="spacingAndGlyphs">視点ごと・Issue に 1 行</text>
 </g>
 <line class="arr" x1="125" y1="660" x2="125" y2="671"/>
 <g class="c-pink">
@@ -185,7 +185,7 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 <g class="c-teal">
 <rect x="505" y="916" width="125" height="56" rx="4" stroke-dasharray="4 3"/>
 <text class="th" x="567.5" y="935" text-anchor="middle" dominant-baseline="central">昇格</text>
-<text class="ts" x="567.5" y="957" text-anchor="middle" dominant-baseline="central">ADR・設計書へ</text>
+<text class="ts" x="567.5" y="957" text-anchor="middle" dominant-baseline="central" textLength="113" lengthAdjust="spacingAndGlyphs">ADR・設計ドキュメントへ</text>
 </g>
 <line class="arr" x1="125" y1="972" x2="125" y2="983"/>
 <g class="c-pink">
@@ -210,5 +210,5 @@ text{font-family:-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-se
 </g>
 
 <text class="ts" x="40" y="1106">破線 = 条件付き（判断駆動・タイプ別ルートによる）／ ピンクの楕円 = ゲート</text>
-<text class="ts" x="40" y="1126">紫 = GitHub Issue ／ 珊瑚 = PR（短期・使い捨て）／ 緑 = プロダクト repo（長期・不変）</text>
+<text class="ts" x="40" y="1126">紫 = GitHub Issue ／ 珊瑚 = PR（短期・使い捨て）／ 緑 = プロダクト repo（長期。ADR は不変）</text>
 </svg>
